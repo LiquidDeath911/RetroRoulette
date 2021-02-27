@@ -1,0 +1,520 @@
+{
+    "output_file": "config.json",
+    
+    "liveOnly": {
+        "type": "checkbox",
+        "value": true,
+        "label": "Live Only Mode",
+        "tooltip": "True if you want it to only run when you are streaming",
+        "group" : "General"
+    },
+    "defaultMode": {
+        "type": "dropdown",
+        "value": "Random",
+	"items": ["Random","Queue"],
+        "label": "Default Mode",
+        "tooltip": "Set default mode for Retro Roulette",
+        "group" : "General"
+    },
+    "defaultConsole": {
+        "type": "dropdown",
+        "value": "SNES",
+	"items": ["GB","NES","SNES","N64"],
+        "label": "Default Console",
+        "tooltip": "Set default console for Retro Roulette",
+        "group" : "General"
+    },
+    "banPermission": {
+        "type": "dropdown",
+        "value": "Editor",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Ban Command Permission level",
+        "tooltip": "Set the permission level for the ban command",
+        "group": "Ban"
+    },
+    "endCommand": {
+        "type": "textbox",
+        "value": "!endrr",
+        "label": "End Command",
+        "tooltip": "Name of the command to end Retro Roulette.\r\nThis will stop users from picking numbers",
+        "group": "End"
+    },
+    "resetCommand": {
+        "type": "textbox",
+        "value": "!resetrr",
+        "label": "Reset Command",
+        "tooltip": "Name of the command to reset Retro Roulette.\r\nUse this command when you are out of numbers.\r\nThis command only works when queue is empty.\r\nUsers who have already picked numbers will be allowed to pick again.",
+        "group": "Reset"
+    },
+    "restartCommand": {
+        "type": "textbox",
+        "value": "!restartrr",
+        "label": "Restart Command",
+        "tooltip": "Name of the command to restart Retro Roulette.\r\nUse this command to empty the queue and start over.\r\nThis command works wether or not the queue is empty.\r\nUsers who have already picked numbers will be allowed to pick again.",
+        "group": "Restart"
+    },
+    "nextCommand": {
+        "type": "textbox",
+        "value": "!nextrr",
+        "label": "Next Command",
+        "tooltip": "Name of the command to choose the next roulette number.\r\nThe next number chosen will be affected by what mode you have set.",
+        "group": "Next"
+    },
+    "modeCommand": {
+        "type": "textbox",
+        "value": "!moderr",
+        "label": "Mode Command",
+        "tooltip": "Name of the command to change the mode of selection.\r\nThe two modes are Random and Queue.",
+        "group": "Mode"
+    },
+    "pickCommand": {
+        "type": "textbox",
+        "value": "!pickrr",
+        "label": "Pick Command",
+        "tooltip": "Name of the command that users will use to pick a number.\r\nMust be followed by a positive whole number.",
+        "group": "Pick"
+    },
+    "consoleCommand": {
+        "type": "textbox",
+        "value": "!consolerr",
+        "label": "Console Command",
+        "tooltip": "Name of the command to change the console.\r\nMust be followed by one of the allowed console names.",
+        "group": "Console"
+    },
+    "maxCommand": {
+        "type": "textbox",
+        "value": "!maxrr",
+        "label": "Max Command",
+        "tooltip": "Name of the command to see what the max number that can be picked is.",
+        "group": "Max"
+    },
+    "leaveCommand": {
+        "type": "textbox",
+        "value": "!leaverr",
+        "label": "Leave Command",
+        "tooltip": "Name of the command that users will use to leave the queue.",
+        "group": "Leave"
+    },
+    "queueCommand": {
+        "type": "textbox",
+        "value": "!queuerr",
+        "label": "Queue Command",
+        "tooltip": "Name of the command to see the next five spots in the queue.",
+        "group": "Queue"
+    },
+    "spotCommand": {
+        "type": "textbox",
+        "value": "!spotrr",
+        "label": "Spot Command",
+        "tooltip": "Name of the command that users will use to see their place in the queue.",
+        "group": "Spot"
+    },
+    "infoCommand": {
+        "type": "textbox",
+        "value": "!inforr",
+        "label": "Info Command",
+        "tooltip": "Name of the command to get the pastebin link.",
+        "group": "Info"
+    },
+    "currentCommand": {
+        "type": "textbox",
+        "value": "!currentrr",
+        "label": "Current Command",
+        "tooltip": "Name of the command to get the current user and number.",
+        "group": "Current"
+    },
+    "whoCommand": {
+        "type": "textbox",
+        "value": "!whorr",
+        "label": "Who Command",
+        "tooltip": "Name of the command to get the number of a user.",
+        "group": "Who"
+    },
+    "startPermission": {
+        "type": "dropdown",
+        "value": "Editor",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Start Command Permission level",
+        "tooltip": "Set the permission level for the start command",
+        "group": "Start"
+    },
+    "endPermission": {
+        "type": "dropdown",
+        "value": "Editor",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "End Command Permission level",
+        "tooltip": "Set the permission level for the end command",
+        "group": "End"
+    },
+    "resetPermission": {
+        "type": "dropdown",
+        "value": "Editor",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Reset Command Permission level",
+        "tooltip": "Set the permission level for the reset command",
+        "group": "Reset"
+    },
+    "restartPermission": {
+        "type": "dropdown",
+        "value": "Editor",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Restart Command Permission level",
+        "tooltip": "Set the permission level for the restart command",
+        "group": "Restart"
+    },
+    "nextPermission": {
+        "type": "dropdown",
+        "value": "Editor",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Next Command Permission level",
+        "tooltip": "Set the permission level for the next command",
+        "group": "Next"
+    },
+    "modePermission": {
+        "type": "dropdown",
+        "value": "Editor",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Mode Command Permission level",
+        "tooltip": "Set the permission level for the mode command",
+        "group": "Mode"
+    },
+    "pickPermission": {
+        "type": "dropdown",
+        "value": "Everyone",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Pick Command Permission level",
+        "tooltip": "Set the permission level for the pick command",
+        "group": "Pick"
+    },
+    "consolePermission": {
+        "type": "dropdown",
+        "value": "Editor",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Console Command Permission level",
+        "tooltip": "Set the permission level for the console command",
+        "group": "Console"
+    },
+    "maxPermission": {
+        "type": "dropdown",
+        "value": "Everyone",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Max Command Permission level",
+        "tooltip": "Set the permission level for the max command",
+        "group": "Max"
+    },
+    "leavePermission": {
+        "type": "dropdown",
+        "value": "Everyone",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Leave Command Permission level",
+        "tooltip": "Set the permission level for the leave command",
+        "group": "Leave"
+    },
+    "spotPermission": {
+        "type": "dropdown",
+        "value": "Everyone",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Spot Command Permission level",
+        "tooltip": "Set the permission level for the spot command",
+        "group": "Spot"
+    },
+    "infoPermission": {
+        "type": "dropdown",
+        "value": "Everyone",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Info Command Permission level",
+        "tooltip": "Set the permission level for the info command",
+        "group": "Info"
+    },
+    "queuePermission": {
+        "type": "dropdown",
+        "value": "Everyone",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Queue Command Permission level",
+        "tooltip": "Set the permission level for the queue command",
+        "group": "Queue"
+    },
+    "currentPermission": {
+        "type": "dropdown",
+        "value": "Everyone",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Current Command Permission level",
+        "tooltip": "Set the permission level for the current command",
+        "group": "Current"
+    },
+    "whoPermission": {
+        "type": "dropdown",
+        "value": "Everyone",
+        "items": ["Everyone","Regular","Subscriber","Moderator","Editor"],
+        "label": "Who Command Permission level",
+        "tooltip": "Set the permission level for the who command",
+        "group": "Who"
+    },
+    "startResponse": {
+        "type": "textbox",
+        "value": "Retro Roulette has started! Use $pickCommand followed by a positive whole number or the word random to enter!",
+        "label": "Start Response",
+        "tooltip": "Message that will be posted when the Retro Roulette has started.\r\n$pickCommand = name of command",
+        "group": "Start"
+    },
+    "endResponse": {
+        "type": "textbox",
+        "value": "Retro Roulette has ended. Better luck next time!",
+        "label": "End Response",
+        "tooltip": "Message that will be posted when the Retro Roulette has ended.",
+        "group": "End"
+    },
+    "resetResponse": {
+        "type": "textbox",
+        "label": "Reset Response",
+        "value": "Retro Roulette has been reset, everyone can pick numbers again!",
+        "tooltip": "Message that will be posted when Retro Roulette has been reset.",
+        "group": "Reset"
+    },
+    "restartResponse": {
+        "type": "textbox",
+        "label": "Restart Response",
+        "value": "Retro Roulette has been restarted. The queue is now empty and everyone can pick numbers again!",
+        "tooltip": "Message that will be posted when Retro Roulette has been restarted.",
+        "group": "Restart"
+    },
+    "modeRandomResponse": {
+        "type": "textbox",
+        "label": "Mode Random Response",
+        "value": "Retro Roulette's mode has been changed to random!",
+        "tooltip": "Message that will be posted when Retro Roulette's mode has been changed to random.",
+        "group": "Mode"
+    },
+    "modeQueueResponse": {
+        "type": "textbox",
+        "label": "Mode Queue Response",
+        "value": "Retro Roulette's mode has been changed to queue!",
+        "tooltip": "Message that will be posted when Retro Roulette's mode has been changed to queue.",
+        "group": "Mode"
+    },
+    "userChosenResponse": {
+        "type": "textbox",
+        "label": "User Chosen Response",
+        "value": "Congrats @$user, your number has been picked!",
+        "tooltip": "Message that will be posted when a user's number is picked. \r\n$user = Username",
+        "group": "Next"
+    },
+    "notifyStreamerResponse": {
+        "type": "textbox",
+        "value": "@$user the next number is $number.",
+        "label": "Notify Streamer Response",
+        "tooltip": "Message that will be posted to notify streamer of the number that was picked.\r\n$user = Username\r\n$number = next number",
+        "group": "Next"
+    },
+    "invalidNumberResponse": {
+        "type": "textbox",
+        "value": "@$user, please try again. Make sure the number you picked is a positive whole number greater than 0 and less than $consoleMax.",
+        "label": "Invalid Number Response",
+        "tooltip": "Message that will be posted when a user picks a negative or non-whole number.\r\n$user = Username\r\n$consoleMax = max number for set console",
+        "group": "Pick"
+    },
+    "alreadyPickedResponse": {
+        "type": "textbox",
+        "value" : "@$user, that number has already been picked. Please try again.",
+        "label": "Already Picked Response",
+        "tooltip": "Message that will be posted when a user picks a number that has already been picked.\r\n$user = Username",
+        "group": "Pick"
+    },
+    "alreadyEnteredResponse": {
+        "type": "textbox",
+        "value" : "@$user, you have already entered the queue.",
+        "label": "Already Entered Response",
+        "tooltip": "Message that will be posted when a user tries to pick a second number.\r\n$user = Username",
+        "group": "Pick"
+    },
+    "noRouletteResponse": {
+        "type": "textbox",
+        "value" : "@$user, Retro Roulette has not been started.",
+        "label": "No Roulette Response",
+        "tooltip": "Message that will be posted when Retro Roulette has not been started and a user uses the pick command.\r\n$user = Username",
+        "group": "General Responses"
+    },
+    "alreadyStartedResponse": {
+        "type": "textbox",
+        "value" : "@$user, Retro Roulette has already been started.",
+        "label": "Already Started Response",
+        "tooltip": "Message that will be posted when Retro Roulette has already been started and a user uses the start command.\r\n$user = Username",
+        "group": "Start"
+    },
+    "alreadyEndedResponse": {
+        "type": "textbox",
+        "value" : "@$user, Retro Roulette has already been ended.",
+        "label": "Already Ended Response",
+        "tooltip": "Message that will be posted when Retro Roulette has already been ended and a user uses the end command.\r\n$user = Username",
+        "group": "End"
+    },
+    "notEmptyResponse": {
+        "type": "textbox",
+        "value" : "@$user, queue is not empty. Use $nextCommand to get the next number or use $restartCommand to empty the queue and start over.",
+        "label": "Not Empty Response",
+        "tooltip": "Message that will be posted when Retro Roulette has already been ended and a user uses the end command.\r\n $user = Username\r\n$nextCommand = name of next command\r\n$restartCommand = name of restart command",
+        "group": "Reset"
+    },
+    "emptyResponse": {
+        "type": "textbox",
+        "value" : "@$user, queue is empty. $nextCommand doesn't work when the queue is empty.",
+        "label": "Empty Response",
+        "tooltip": "Message that will be posted when the queue is empty and the next command is used.\r\n$user = Username\r\n$nextCommand = name of next command",
+        "group": "Next"
+    },
+    "noNumberResponse": {
+        "type": "textbox",
+        "value" : "@$user you must put a positive whole number after $pickCommand, or the word random.",
+        "label": "No Number Response",
+        "tooltip": "Message that will be posted when the user doesn't put a number after the pick command.\r\n$user = Username\r\n$pickCommand = name of pick command",
+        "group": "Pick"
+    },
+    "enteredResponse": {
+        "type": "textbox",
+        "value" : "@$user, you have entered the queue with the number $number.",
+        "label": "Entered Response",
+        "tooltip": "Message that will be posted when a user has entered the queue.\r\n$user = Username\r\n$number = picked number",
+        "group": "Pick"
+    },
+    "consoleChangedResponse": {
+        "type": "textbox",
+        "value" : "@$user, you have changed the console to $console.",
+        "label": "Console Changed Response",
+        "tooltip": "Message that will be posted when the console is changed.\r\n $user = Username\r\n$console = console name",
+        "group": "Console"
+    },
+    "consoleNotChangedResponse": {
+        "type": "textbox",
+        "value" : "@$user, you must enter one of the allowed consoles after $consoleCommand.",
+        "label": "Console Not Changed Response",
+        "tooltip": "Message that will be posted when the console failed to be changed.\r\n$user = Username\r\n$consoleCommand = name of console command",
+        "group": "Console"
+    },
+    "maxResponse": {
+        "type": "textbox",
+        "value" : "@$user, the max number that can be chosen is $consoleMax.",
+        "label": "Max Response",
+        "tooltip": "Message that will be posted when a user checks the max number able to be entered.\r\n$user = Username\r\n$consoleMax = max number for set console",
+        "group": "Max"
+    },
+    "leaveResponse": {
+        "type": "textbox",
+        "value" : "@$user, you have been removed from the queue.",
+        "label": "Leave Response",
+        "tooltip": "Message that will be posted when a user has left the queue.\r\n$user = Username",
+        "group": "Leave"
+    },
+    "removedResponse": {
+        "type": "textbox",
+        "value" : "@$user, you have been removed from the queue because your number was too high for the new console.",
+        "label": "Removed Response",
+        "tooltip": "Message that will be posted when a user has been removed from the queue due to a console change.\r\n$user = Username",
+        "group": "Console"
+    },
+    "outOfBoundsResponse": {
+        "type": "textbox",
+        "value" : "@$user, you have picked a number that is less than 1 or too large. The max number currently is $consoleMax.",
+        "label": "Out Of Bounds Response",
+        "tooltip": "Message that will be posted when a user picked a number that is too small or too large.\r\n$user = Username\r\n$consoleMax = max number for set console",
+        "group": "Pick"
+    },
+    "notEnteredLeaveResponse": {
+        "type": "textbox",
+        "value" : "@$user, you can't leave the queue without entering first. Idiot KEKW",
+        "label": "Not Entered Leave Response",
+        "tooltip": "Message that will be posted when a user tries to leave the queue but aren't in it.\r\n$user = Username",
+        "group": "Leave"
+    },
+    "notEnteredSpotResponse": {
+        "type": "textbox",
+        "value" : "@$user, you can't check your spot in the queue without entering first. Idiot KEKW",
+        "label": "Not Entered Spot Response",
+        "tooltip": "Message that will be posted when a user tries to leave the queue but aren't in it.\r\n$user = Username",
+        "group": "Spot"
+    },
+    "spotResponse": {
+        "type": "textbox",
+        "value" : "@$user, your spot in the queue is $spot out of $total HeadBanging",
+        "label": "Spot Response",
+        "tooltip": "Message that will be posted when a user checks their spot in the queue while Retro Roulette is in queue mode.\r\n$user = Username\r\n$spot = spot in queue\r\n$total = total entered in the queue",
+        "group": "Spot"
+    },
+    "spotRandomResponse": {
+        "type": "textbox",
+        "value" : "@$user, you are in the queue of $total people. But Retro Roulette is in Random mode. Good luck HyperTigel",
+        "label": "Spot Random Response",
+        "tooltip": "Message that will be posted when a user checks their spot in the queue while Retro Roulette is in random mode.\r\n$user = Username",
+        "group": "Spot"
+    },
+    "queueRandomResponse": {
+        "type": "textbox",
+        "value" : "The queue has $total people in it but Retro Roulette is in Random mode. Good luck HyperTigel",
+        "label": "Queue Random Response",
+        "tooltip": "Message that will be posted when the queue command is used but the mode is set to Random.\r\n$total = total in queue",
+        "group": "Queue"
+    },
+    "queueFiveResponse": {
+        "type": "textbox",
+        "value" : "The next five $spots are: $user1 with $num1; $user2 with $num2; $user3 with $num3; $user4 with $num4; $user5 with $num5;",
+        "label": "Queue Five Response",
+        "tooltip": "Message that will be posted when the queue command is used.\r\n$user# and $num# = Username and number of that spot",
+        "group": "Queue"
+    },
+    "modeNotChangedResponse": {
+        "type": "textbox",
+        "value" : "@user, the mode was not changed. Make sure you put either Random or Queue after the $modeCommand",
+        "label": "Mode Not Changed Response",
+        "tooltip": "Message that will be posted when the mode was not changed.\r\n$user = Username\r\n$modeCommand = name of mode command",
+        "group": "Mode"
+    },
+    "currentResponse": {
+        "type": "textbox",
+        "value" : "The current number is $number picked by $user PepoG",
+        "label": "Current Response",
+        "tooltip": "Message that will be posted when the current command is used.\r\n$user = Username\r\n$number = current number",
+        "group": "Current"
+    },
+    "whoResponse": {
+        "type": "textbox",
+        "value" : "@$user, you picked number $number",
+        "label": "Who Response",
+        "tooltip": "Message that will be posted when the who command is used.\r\n$user = Username\r\n$number = current number",
+        "group": "Who"
+    },
+    "whoOtherResponse": {
+        "type": "textbox",
+        "value" : "They picked number $number",
+        "label": "Who Other Response",
+        "tooltip": "Message that will be posted when the who command is used about another user.$number = current number",
+        "group": "Who"
+    },
+    "whoNoneResponse": {
+        "type": "textbox",
+        "value" : "Error: Not found in queue. pressF",
+        "label": "Who None Response",
+        "tooltip": "Message that will be posted when the who command is used but the user doesn't have a number in the queue.",
+        "group": "Who"
+    },
+    "banResponse": {
+        "type": "textbox",
+        "value" : "@$user has been banned oatsTrash",
+        "label": "Ban Response",
+        "tooltip": "Message that will be posted when a user is banned.\r\n$user = Username",
+        "group": "Ban"
+    },
+    "unbanResponse": {
+        "type": "textbox",
+        "value" : "@$user has been unbanned peepoSHAKE",
+        "label": "Unban Response",
+        "tooltip": "Message that will be posted when a user is unbanned.\r\n$user = Username",
+        "group": "Ban"
+    },
+    "openReadMe": {
+        "type": "button",
+        "label": "Open 'Readme Me' file",
+        "tooltip": "Opens the 'Readme.txt' for this script.",
+        "function": "OpenReadMe",
+        "wsevent": "",
+        "group": ""
+    }
+}
