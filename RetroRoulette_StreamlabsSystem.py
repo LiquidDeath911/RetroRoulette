@@ -17,7 +17,7 @@ ScriptName = "Retro Roulette"
 Website = "https://github.com/LiquidDeath911/RetroRoulette"
 Description = "Retro Roulette for Streamlabs Chatbot"
 Creator = "LiquidDeath911"
-Version = "2.0.0"
+Version = "2.0.1"
 
 # global variables
 path = os.path.dirname(__file__)
@@ -75,7 +75,8 @@ def Init():
                         "keepTrack": False,
                         "defaultMode": "Random",
                         "defaultConsole": "SNES",
-                        "startResponse" : "Retro Roulette has started! Use $pickCommand followed by a positive whole number or the word random to enter!",
+                        "startResponse" : "Retro Roulette for $console has started! Use $pickCommand followed by a number to enter!",
+                        "startNoConsoleResponse" : "@$user, you must put the console name after $startCommand",
 			"endResponse" : "Retro Roulette has ended. Better luck next time!",
                         "resetResponse" : "Retro Roulette has been reset, everyone can pick numbers again!",
                         "restartResponse" : "Retro Roulette has been restarted. The queue is now empty and everyone can pick numbers again!",
@@ -205,7 +206,7 @@ def Execute(data):
 	global bannedList, n64NumberList, snesNumberList, nesNumberList, gbNumberList, userGotPickedResponses, nextButQueueEmptyResponses, numberAlreadyPickedResponses, userPickedNumberResponses
 	global numberOutOfBoundsResponses, currentMode, keepTrack, liveOnly, currentConsoleList, gbGameList, snesGameList, n64GameList, nesGameList, currentConsole, currentGameList, currentGame
 
-        if data.IsChatMessage() and (data.GetParam(0).lower() in commands.values()) and not (data.UserName.lower() in bannedList) and ((liveOnly and Parent.IsLive()) or (not liveOnly or data.UserName == "LiquidDeath911")): 
+        if data.IsChatMessage() and ((data.GetParam(0).lower() in commands.values()) or (data.GetParam(0).lower() == "!commands")) and not (data.UserName.lower() in bannedList) and ((liveOnly and Parent.IsLive()) or (not liveOnly or data.UserName == "LiquidDeath911")): 
                 if data.IsChatMessage() and (data.GetParam(0).lower() == commands["banCommand"]) and (Parent.HasPermission(data.User, permissions["banPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         
@@ -264,13 +265,53 @@ def Execute(data):
                         username = data.UserName
 
                         if not isRouletteStarted:
-                                outputMessage = settings["startResponse"]
-                                outputMessage = outputMessage.replace("$pickCommand", commands["pickCommand"])
-                                isRouletteStarted = True
-                                userList = []
-                                userNumbers = []
-                                usersPicked = []
-                                numbersPicked = []
+                                if (data.GetParamCount() == 2):
+                                        try:
+                                                console = data.GetParam(1)
+                                        except:
+                                                outputMessage = settings["startNoConsoleResponse"]
+                                                outputMessage = outputMessage.replace("$user", username)
+                                                outputMessage = outputMessage.replace("$startCommand", commands["startCommand"])
+                                                return
+                                        
+                                        if console.lower() == "snes":
+                                                consoleMax = 725
+                                                currentConsole = "SNES"
+                                                currentConsoleList = snesNumberList
+                                                currentGameList = snesGameList
+                                        elif console.lower() == "nes":
+                                                consoleMax = 677
+                                                currentConsole = "NES"
+                                                currentConsoleList = nesNumberList
+                                                currentGameList = nesGameList
+                                        elif console.lower() == "n64":
+                                                consoleMax = 296
+                                                currentConsole = "N64"
+                                                currentConsoleList = n64NumberList
+                                                currentGameList = n64GameList
+                                        elif console.lower() == "gb":
+                                                consoleMax = 582
+                                                currentConsole = "GB"
+                                                currentConsoleList = gbNumberList
+                                                currentGameList = gbGameList
+                                        else:
+                                                outputMessage = settings["startNoConsoleResponse"]
+                                                outputMessage = outputMessage.replace("$user", username)
+                                                outputMessage = outputMessage.replace("$startCommand", commands["startCommand"])
+                                                return
+                                        outputMessage = settings["startResponse"]
+                                        outputMessage = outputMessage.replace("$console", currentConsole)
+                                        outputMessage = outputMessage.replace("$pickCommand", commands["pickCommand"])
+                                        isRouletteStarted = True
+                                        userList = []
+                                        userNumbers = []
+                                        usersPicked = []
+                                        numbersPicked = []
+                                else:
+                                        outputMessage = settings["startNoConsoleResponse"]
+                                        outputMessage = outputMessage.replace("$user", username)
+                                        outputMessage = outputMessage.replace("$startCommand", commands["startCommand"])
+                                        
                         else:
                                 outputMessage = settings["alreadyStartedResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
@@ -563,7 +604,7 @@ def Execute(data):
                                                 outputMessage = outputMessage.replace("$user", username)
                                                 outputMessage = outputMessage.replace("$consoleMax", str(consoleMax))
                                         else:
-                                                outputMessage = settings["zeroResponse"]
+                                                outputMessage = settings["lessThanOneResponse"]
                                                 outputMessage = outputMessage.replace("$user", username)
                                 else:
                                         userList.append(username)

@@ -33,9 +33,16 @@
     },
     "startResponse": {
         "type": "textbox",
-        "value": "Retro Roulette has started! Use $pickCommand followed by a positive whole number or the word random to enter!",
+        "value": "Retro Roulette for $console has started! Use $pickCommand followed by a number to enter!",
         "label": "Start Response",
-        "tooltip": "Message that will be posted when the Retro Roulette has started.\r\n$pickCommand = name of command",
+        "tooltip": "Message that will be posted when the Retro Roulette has started.\r\n$console = picked console\r\n$pickCommand = name of pick command",
+        "group": "Basic Responses"
+    },
+    "startNoConsoleResponse": {
+        "type": "textbox",
+        "value": "@$user, you must put the console name after $startCommand",
+        "label": "Start No Console Response",
+        "tooltip": "Message that will be posted when the start command was used but no console specified.\r\n$user = username\r\n$startCommand = name of start command",
         "group": "Basic Responses"
     },
     "endResponse": {
