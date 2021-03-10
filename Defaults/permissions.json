@@ -1,0 +1,22 @@
+{
+"startPermission": "Editor",
+"endPermission": "Editor",
+"resetPermission": "Editor",
+"restartPermission": "Editor",
+"nextPermission": "Editor",
+"modePermission": "Editor",
+"pickPermission": "Everyone",
+"consolePermission": "Editor",
+"maxPermission": "Everyone",
+"leavePermission": "Everyone",
+"queuePermission": "Everyone",
+"spotPermission": "Everyone",
+"infoPermission": "Everyone",
+"currentPermission": "Everyone",
+"whoPermission": "Everyone",
+"banPermission": "Editor",
+"unbanPermission": "Editor",
+"updatePermission": "Editor",
+"resetConsolePermission": "Editor",
+"shufflePermission": "Editor"
+}

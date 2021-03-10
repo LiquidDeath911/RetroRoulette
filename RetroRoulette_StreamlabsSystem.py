@@ -10,40 +10,61 @@ import json
 import os
 import ctypes
 import codecs
+import random
 
 # script info
 ScriptName = "Retro Roulette"
 Website = "https://github.com/LiquidDeath911/RetroRoulette"
 Description = "Retro Roulette for Streamlabs Chatbot"
 Creator = "LiquidDeath911"
-Version = "2.0"
+Version = "2.0.0"
 
 # global variables
 path = os.path.dirname(__file__)
-pickedNumbersPath = os.path.join(path, PickedNumbers)
-responseListsPath = os.path.join(path, ResponseLists)
+consoleListsPath = os.path.join(path, "ConsoleLists")
+responseListsPath = os.path.join(path, "ResponseLists")
+gameListsPath = os.path.join(path, "GameLists")
 configFile = "config.json"
 settings = {}
+liveOnly = True
 isRouletteStarted = False
-rouletteMode = ""
+defaultMode = ""
 consoleMax = 0
 userList = []
 userNumbers = []
-userPicked = []
+usersPicked = []
 numbersPicked = []
+currentConsole = ""
+currentMode = ""
 currentUser = ""
 currentNum = 0
 bannedList = []
-n64List = []
-snesList = []
-nesList = []
-gbList = []
-pickedTextList = []
-commands = ["!startrr","!endrr","!resetrr","!restartrr","!nextrr","!queuerr","!pickrr","!consolerr","!maxrr","!leaverr","!spotrr","!inforr", "!moderr","!currentrr","!whorr","!banrr", "!unbanrr", "!updaterr"]
+n64NumberList = []
+snesNumberList = []
+nesNumberList = []
+gbNumberList = []
+n64GameList = []
+snesGameList = []
+nesGameList = []
+gbGameList = []
+currentConsoleList = []
+currentGameList = []
+numberAlreadyPickedResponses = []
+userLeavesQueueResponses = []
+userGotPickedResponses = []
+userPickedNumberResponses = []
+nextButQueueEmptyResponses = []
+numberOutOfBoundsResponses = []
+commands = {}
+permissions = {}
+keepTrack = False
+currentGame = ""
 
 
 def Init():
-	global settings, rouletteMode, consoleMax, bannedList, n64List, snesList, nesList, gbList, pickedTextList
+	global settings, defaultMode, consoleMax, bannedList, n64NumberList, snesNumberList, nesNumberList, gbNumberList, userGotPickedResponses, commands, permissions
+	global userPickedNumberResponses, nextButQueueEmptyResponses, userLeavesQueueResponses, numberOutOfBoundsResponses, currentConsole, currentMode, keepTrack, liveOnly
+	global numberAlreadyPickedResponses, currentConsoleList, gbGameList, snesGameList, n64GameList, nesGameList, currentGameList, currentGame
 	
 	try:
 		with codecs.open(os.path.join(path, configFile), encoding='utf-8-sig', mode='r') as file:
@@ -51,126 +72,153 @@ def Init():
 	except:
 		settings = {
 			"liveOnly": True,
+                        "keepTrack": False,
                         "defaultMode": "Random",
                         "defaultConsole": "SNES",
-                        "banPermission": "Editor",
-			"startCommand": "!startrr",
-                        "endCommand": "!endrr",
-                        "resetCommand": "!resetrr",
-                        "restartCommand": "!restartrr",
-                        "nextCommand": "!nextrr",
-                        "modeCommand": "!moderr",
-                        "pickCommand": "!pickrr",
-                        "consoleCommand": "!consolerr",
-                        "maxCommand": "!maxrr",
-                        "leaveCommand": "!leaverr",
-                        "spotCommand": "!spotrr",
-                        "infoCommand": "!inforr",
-                        "queueCommand": "!queuerr",
-                        "currentCommand": "!currentrr",
-                        "whoCommand": "!whorr",
-                        "startPermission": "Editor",
-                        "endPermission": "Editor",
-                        "resetPermission": "Editor",
-                        "restartPermission": "Editor",
-                        "nextPermission": "Editor",
-                        "modePermission": "Editor",
-                        "pickPermission": "Everyone",
-                        "consolePermission": "Editor",
-                        "maxPermission": "Everyone",
-                        "leavePermission": "Everyone",
-                        "spotPermission": "Everyone",
-                        "infoPermission": "Everyone",
-                        "queuePermission": "Everyone",
-                        "currentPermission": "Everyone",
-                        "whoPermission": "Everyone",
                         "startResponse" : "Retro Roulette has started! Use $pickCommand followed by a positive whole number or the word random to enter!",
 			"endResponse" : "Retro Roulette has ended. Better luck next time!",
                         "resetResponse" : "Retro Roulette has been reset, everyone can pick numbers again!",
                         "restartResponse" : "Retro Roulette has been restarted. The queue is now empty and everyone can pick numbers again!",
                         "modeRandomResponse" : "Retro Roulette's mode has been changed to random!",
                         "modeQueueResponse" : "Retro Roulette's mode has been changed to queue!",
-			"userChosenResponse" : "Congrats @$user, your number has been picked!",
-			"notifyStreamerResponse" : "@$user the next number is $number.",
+			"notifyStreamerResponse" : "@$user the next game is $game.",
 			"invalidNumberResponse" : "@$user, please try again. Make sure the number you picked is a positive whole number greater than 0 and less than $consoleMax.",
-			"alreadyPickedResponse" : "@$user, that number has already been picked. Please try again.",
 			"alreadyEnteredResponse" : "@$user, you have already entered the queue.",
+                        "alreadyPickedResponse" : "Tigelton played the game you picked @$user, let others have a chance DontAtMe",
 			"noRouletteResponse" : "@$user, Retro Roulette has not been started.",
                         "alreadyStartedResponse" : "@$user, Retro Roulette has already been started.",
                         "alreadyEndedResponse" : "@$user, Retro Roulette has already been ended.",
                         "notEmptyResponse" : "@$user, queue is not empty. Use $nextCommand to get the next number or use $restartCommand to empty the queue and start over.",
-                        "emptyResponse" : "@$user, queue is empty. $nextCommand doesn't work when the queue is empty.",
                         "noNumberResponse" : "@$user you must put a positive whole number after $pickCommand, or the word random.",
-                        "enteredResponse" : "@$user, you have entered the queue with the number $number.",
                         "consoleChangedResponse" : "@$user, you have changed the console to $console.",
                         "consoleNotChangedResponse" : "@$user, you must enter one of the allowed consoles after $consoleCommand.",
-                        "maxResponse" : "@$user, the max number that can be chosen is $consoleMax.",
-                        "leaveResponse" : "@$user, you have been removed from the queue.",
+                        "maxResponse" : "@$user, the max number for the $currentConsole is $consoleMax.",
                         "removedResponse" : "@$user, you have been removed from the queue because your number was too high for the new console.",
-                        "outOfBoundsResponse" : "@$user, you have picked a number that is less than 1 or too large. The max number currently is $consoleMax.",
+                        "lessThanOneResponse" : "@$user, You can't pick numbers less than 1",
                         "notEnteredLeaveResponse" : "@$user, you can't leave the queue without entering first. Idiot KEKW",
                         "notEnteredSpotResponse" : "@$user, you can't check your spot in the queue without entering first. Idiot KEKW",
                         "spotResponse" : "@$user, your spot in the queue is $spot out of $total HeadBanging",
                         "spotRandomResponse" : "@$user, you are in the queue of $total people. But Retro Roulette is in Random mode. Good luck HyperTigel",
                         "queueRandomResponse" : "The queue has $total people in it but Retro Roulette is in Random mode. Good luck HyperTigel",
                         "queueFiveResponse" : "The next $spots spots are: $user1 with $num1; $user2 with $num2; $user3 with $num3; $user4 with $num4; $user5 with $num5;",
-                        "modeNotChangedResponse" : "@user, the mode was not changed. Make sure you put either Random or Queue after the $modeCommand",
-                        "currentResponse" : "The current number is $number picked by $user PepoG",
-                        "whoResponse" : "@$user, you picked number $number",
-                        "whoOtherResponse" : "They picked number $number",
+                        "modeNotChangedResponse" : "@user, the mode was not changed. Make sure you put either Random or Queue after $modeCommand",
+                        "currentResponse" : "The current game is $game picked by $user PepoG",
+                        "whoSelfResponse" : "@$user, you picked number $number",
+                        "whoByNameResponse" : "$user picked number $number",
+                        "whoByAlreadyPlayedNameResponse" : "$user picked number $number and it has already been played",
+                        "whoByNumberResponse" : "The number $number was picked by $user",
+                        "whoByAlreadyPlayedNumberResponse" : "The number $number has already been played, but it was picked by $user",
+                        "whoNoneResponse" : "Error: Not found in queue. pressF",
                         "banResponse" : "@$user has been banned oatsTrash",
                         "unbanResponse" : "@$user has been unbanned peepoSHAKE",
+                        "alreadyPickedPreviousStreamResponse": "@$user, that number was played in a previous stream, try another number or use the word Random",
+                        "consoleResetResponse" : "@$user, you have reset the previously picked numbers for the $console",
+                        "consoleNotResetResponse" : "@$user, the console was not reset. Make sure the put the console name after $resetConsoleCommand",
+                        "shuffleResponse" : "@$user, the games for $console were shuffled.",
+                        "shuffleFailedResponse" : "@$user, nothing was shuffled. Make sure to put the console name or All after $shuffleCommand",
 		}
+
+        with open(os.path.join(path, "commands.json"), 'r') as filehandle:
+                com = filehandle.read()
+        commands = json.loads(com)
+
+        with open(os.path.join(path, "permissions.json"), 'r') as filehandle:
+                perm = filehandle.read()
+        permissions = json.loads(perm)
 
         with open(os.path.join(path, "bannedList.json"), 'r') as filehandle:
                 bannedList = json.load(filehandle)
 
-        with open(os.path.join(pickedNumbersPath, "n64List.json"), 'r') as filehandle:
-                n64List = json.load(filehandle)
+        with open(os.path.join(consoleListsPath, "snesNumberList.json"), 'r') as filehandle:
+                snesNumberList = json.load(filehandle)
 
-        with open(os.path.join(pickedNumbersPath, "snesList.json"), 'r') as filehandle:
-                snesList = json.load(filehandle)
+        with open(os.path.join(consoleListsPath, "n64NumberList.json"), 'r') as filehandle:
+                n64NumberList = json.load(filehandle)
 
-        with open(os.path.join(pickedNumbersPath, "nesList.json"), 'r') as filehandle:
-                nesList = json.load(filehandle)
+        with open(os.path.join(consoleListsPath, "nesNumberList.json"), 'r') as filehandle:
+                nesNumberList = json.load(filehandle)
 
-        with open(os.path.join(pickedNumbersPath, "gbList.json"), 'r') as filehandle:
-                gbList = json.load(filehandle)
+        with open(os.path.join(consoleListsPath, "gbNumberList.json"), 'r') as filehandle:
+                gbNumberList = json.load(filehandle)
 
-        with open(os.path.join(responseListPath, "pickedTextList.json"), 'r') as filehandle:
-                pickedTextList = json.load(filehandle)
+        with open(os.path.join(gameListsPath, "snesGameList.json"), 'r') as filehandle:
+                snesGameList = json.load(filehandle)
 
-        rouletteMode = settings["defaultMode"]
+        with open(os.path.join(gameListsPath, "n64GameList.json"), 'r') as filehandle:
+                n64GameList = json.load(filehandle)
+
+        with open(os.path.join(gameListsPath, "nesGameList.json"), 'r') as filehandle:
+                nesGameList = json.load(filehandle)
+
+        with open(os.path.join(gameListsPath, "gbGameList.json"), 'r') as filehandle:
+                gbGameList = json.load(filehandle)
+
+        with open(os.path.join(responseListsPath, "userGotPickedResponses.json"), 'r') as filehandle:
+                userGotPickedResponses = json.load(filehandle)
+
+        with open(os.path.join(responseListsPath, "numberAlreadyPickedResponses.json"), 'r') as filehandle:
+                numberAlreadyPickedResponses = json.load(filehandle)
+
+        with open(os.path.join(responseListsPath, "nextButQueueEmptyResponses.json"), 'r') as filehandle:
+                nextButQueueEmptyResponses = json.load(filehandle)
+
+        with open(os.path.join(responseListsPath, "userPickedNumberResponses.json"), 'r') as filehandle:
+                userPickedNumberResponses = json.load(filehandle)
+
+        with open(os.path.join(responseListsPath, "userLeavesQueueResponses.json"), 'r') as filehandle:
+                userLeavesQueueResponses = json.load(filehandle)
+
+        with open(os.path.join(responseListsPath, "numberOutOfBoundsResponses.json"), 'r') as filehandle:
+                numberOutOfBoundsResponses = json.load(filehandle)
+
+        defaultMode = settings["defaultMode"]
+        currentMode = defaultMode
+
+        keepTrack = settings["keepTrack"]
+        liveOnly = settings["liveOnly"]
         
-        if settings["defaultConsole"] == "SNES" or settings["defaultConsole"] == "snes":
+        if settings["defaultConsole"].lower() == "snes":
                 consoleMax = 725
-        elif settings["defaultConsole"] == "NES" or settings["defaultConsole"] == "nes":
+                currentConsole = "SNES"
+                currentConsoleList = snesNumberList
+                currentGameList = snesGameList
+        elif settings["defaultConsole"].lower() == "nes":
                 consoleMax = 677
-        elif settings["defaultConsole"] == "N64" or settings["defaultConsole"] == "n64":
+                currentConsole = "NES"
+                currentConsoleList = nesNumberList
+                currentGameList = nesGameList
+        elif settings["defaultConsole"].lower() == "n64":
                 consoleMax = 296
-        elif settings["defaultConsole"] == "GB" or settings["defaultConsole"] == "gb":
+                currentConsole = "N64"
+                currentConsoleList = n64NumberList
+                currentGameList = n64GameList
+        elif settings["defaultConsole"].lower() == "gb":
                 consoleMax = 582
+                currentConsole = "GB"
+                currentConsoleList = gbNumberList
+                currentGameList = gbGameList
 	
 	return
 
 def Execute(data):
-	global userList, userNumbers, userPicked, commands, rouletteMode, isRouletteStarted, defaultConsole, consoleMax, numbersPicked, currentNum, currentUser, bannedList, n64List, snesList, nesList, gbList, pickedTextList
+	global userList, userNumbers, usersPicked, commands, defaultMode, isRouletteStarted, defaultConsole, consoleMax, numbersPicked, currentNum, currentUser, userLeavesQueueResponses
+	global bannedList, n64NumberList, snesNumberList, nesNumberList, gbNumberList, userGotPickedResponses, nextButQueueEmptyResponses, numberAlreadyPickedResponses, userPickedNumberResponses
+	global numberOutOfBoundsResponses, currentMode, keepTrack, liveOnly, currentConsoleList, gbGameList, snesGameList, n64GameList, nesGameList, currentConsole, currentGameList, currentGame
 
-        if data.IsChatMessage() and (data.GetParam(0).lower() in commands) and ((not (data.UserName.lower() in bannedList)) or (data.GetParam(0).lower() == "!unbanrr")) and ((settings["liveOnly"] and Parent.IsLive()) or (not settings["liveOnly"] or data.UserName == "LiquidDeath911")): 
-                if data.IsChatMessage() and (data.GetParam(0).lower() == "!banrr") and (Parent.HasPermission(data.User, settings["banPermission"], "") or data.UserName == "LiquidDeath911"):
+        if data.IsChatMessage() and (data.GetParam(0).lower() in commands.values()) and not (data.UserName.lower() in bannedList) and ((liveOnly and Parent.IsLive()) or (not liveOnly or data.UserName == "LiquidDeath911")): 
+                if data.IsChatMessage() and (data.GetParam(0).lower() == commands["banCommand"]) and (Parent.HasPermission(data.User, permissions["banPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
-                        tempBannedList = []
                         
                         with open(os.path.join(path, "bannedList.json"), 'r') as filehandle:
-                                tempBannedList = json.load(filehandle)
+                                bannedList = json.load(filehandle)
                         
                         if (data.GetParamCount() == 2):
                                 try:
                                         toBan = data.GetParam(1).lower()
                                 except:
                                         return
-                                if (not (toBan in tempBannedList)):
-                                        tempBannedList.append(toBan)
+                                if (not (toBan in bannedList)):
+                                        bannedList.append(toBan)
                                         outputMessage = settings["banResponse"]
                                         outputMessage = outputMessage.replace("$user", toBan)
                                 
@@ -180,25 +228,24 @@ def Execute(data):
                         Parent.SendStreamMessage(outputMessage)
 
                         with open(os.path.join(path, "bannedList.json"), 'w') as filehandle:
-                                json.dump(tempBannedList, filehandle)
+                                json.dump(bannedList, filehandle)
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == "!unbanrr") and (Parent.HasPermission(data.User, settings["banPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["unbanCommand"]) and (Parent.HasPermission(data.User, permissions["unbanPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
-                        tempBannedList = []
                         
                         with open(os.path.join(path, "bannedList.json"), 'r') as filehandle:
-                                tempBannedList = json.load(filehandle)
+                                bannedList = json.load(filehandle)
                         
                         if (data.GetParamCount() == 2):
                                 try:
                                         toUnBan = data.GetParam(1).lower()
                                 except:
                                         return
-                                if (toUnBan in tempBannedList):
-                                        place = tempBannedList.IndexOf(toUnBan)
-                                        tempBannedList.pop(place)
+                                if (toUnBan in bannedList):
+                                        place = bannedList.IndexOf(toUnBan)
+                                        bannedList.pop(place)
                                         outputMessage = settings["unbanResponse"]
                                         outputMessage = outputMessage.replace("$user", toUnBan)
                                 
@@ -208,21 +255,21 @@ def Execute(data):
                         Parent.SendStreamMessage(outputMessage)
 
                         with open(os.path.join(path, "bannedList.json"), 'w') as filehandle:
-                                json.dump(tempBannedList, filehandle)
+                                json.dump(bannedList, filehandle)
 
                         return
                 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["startCommand"]) and (Parent.HasPermission(data.User, settings["startPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["startCommand"]) and (Parent.HasPermission(data.User, permissions["startPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""			
                         username = data.UserName
 
                         if not isRouletteStarted:
                                 outputMessage = settings["startResponse"]
-                                outputMessage = outputMessage.replace("$pickCommand", settings["pickCommand"])
+                                outputMessage = outputMessage.replace("$pickCommand", commands["pickCommand"])
                                 isRouletteStarted = True
                                 userList = []
                                 userNumbers = []
-                                userPicked = []
+                                usersPicked = []
                                 numbersPicked = []
                         else:
                                 outputMessage = settings["alreadyStartedResponse"]
@@ -232,7 +279,7 @@ def Execute(data):
 
                         return
                         
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["endCommand"]) and (Parent.HasPermission(data.User, settings["endPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["endCommand"]) and (Parent.HasPermission(data.User, permissions["endPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
 
@@ -244,14 +291,14 @@ def Execute(data):
                                 isRouletteStarted = False
                                 userList = []
                                 userNumbers = []
-                                userPicked = []
+                                usersPicked = []
                                 numbersPicked = []
 
                         Parent.SendStreamMessage(outputMessage)
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["resetCommand"]) and (Parent.HasPermission(data.User, settings["resetPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["resetCommand"]) and (Parent.HasPermission(data.User, permissions["resetPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
 
@@ -260,18 +307,18 @@ def Execute(data):
                                 outputMessage = outputMessage.replace("$user", username)
                         elif not (userList) and not (userNumbers):
                                 outputMessage = settings["resetResponse"]
-                                userPicked = []
+                                usersPicked = []
                         elif (userList or userNumbers):
                                 outputMessage = settings["notEmptyResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
-                                outputMessage = outputMessage.replace("$nextCommand", settings["nextCommand"])
-                                outputMessage = outputMessage.replace("$restartCommand", settings["restartCommand"])
+                                outputMessage = outputMessage.replace("$nextCommand", commands["nextCommand"])
+                                outputMessage = outputMessage.replace("$restartCommand", commands["restartCommand"])
 
                         Parent.SendStreamMessage(outputMessage)
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["restartCommand"]) and (Parent.HasPermission(data.User, settings["restartPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["restartCommand"]) and (Parent.HasPermission(data.User, permissions["restartPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
 
@@ -282,65 +329,98 @@ def Execute(data):
                                 outputMessage = settings["restartResponse"]
                                 userList = []
                                 userNumbers = []
-                                userPicked = []
+                                usersPicked = []
                         elif not (userList) and not (userNumbers):
                                 outputMessage = settings["resetResponse"]
-                                userPicked = []
+                                usersPicked = []
 
                         Parent.SendStreamMessage(outputMessage)
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["nextCommand"]) and (Parent.HasPermission(data.User, settings["nextPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["nextCommand"]) and (Parent.HasPermission(data.User, permissions["nextPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
                         pickedUser = ""
                         pickedNumber = 0
                         rand = 0
+                        pickedGame = ""
 
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
                         elif (userList or userNumbers):
-                                with open(os.path.join(path, "pickedTextList.json"), 'r') as filehandle:
-                                        pickedTextList = json.load(filehandle)
+                                with open(os.path.join(responseListsPath, "userGotPickedResponses.json"), 'r') as filehandle:
+                                        userPickedTextList = json.load(filehandle)
                                 
-                                pickedTextLength = len(pickedTextList)
-                                randLine = (Parent.GetRandom(1, pickedTextLength) - 1)
-                                outputMessage = pickedTextList[randLine]
+                                userGotPickedResponsesLength = len(userGotPickedResponses)
+                                randLine = (Parent.GetRandom(1, userGotPickedResponsesLength) - 1)
+                                outputMessage = userGotPickedResponses[randLine]
                                 
                                 outputMessage2 = settings["notifyStreamerResponse"]
                                 
-                                if rouletteMode == "Random":
+                                if defaultMode == "Random":
                                         userMax = len(userList)
                                         rand = (Parent.GetRandom(1, userMax) - 1)
                                         pickedUser = userList.pop(rand)
                                         pickedNumber = userNumbers.pop(rand)
-                                        numbersPicked.append(pickedNumber)
-                                        userPicked.append(pickedUser)
-                                        currentUser = pickedUser
-                                        currentNum = pickedNumber
                                 else:
                                         pickedUser = userList.pop(0)
                                         pickedNumber = userNumbers.pop(0)
-                                        userPicked.append(pickedUser)
+
+                                currentUser = pickedUser
+                                currentNum = pickedNumber
+                                usersPicked.append(pickedUser)
+                                numbersPicked.append(pickedNumber)
+                                pickedGame = currentGameList[currentNum]
+                                currentGame = pickedGame
+
+                                if keepTrack:
+                                        if currentConsole.lower() == "snes":
+                                                with open(os.path.join(consoleListsPath, "snesNumberList.json"), 'r') as filehandle:
+                                                        snesNumberList = json.load(filehandle)
+                                                snesNumberList.append(pickedNumber)
+                                                with open(os.path.join(consoleListsPath, "snesNumberList.json"), 'w') as filehandle:
+                                                        json.dump(snesNumberList, filehandle)
+                                        elif currentConsole.lower() == "nes":
+                                                with open(os.path.join(consoleListsPath, "nesNumberList.json"), 'r') as filehandle:
+                                                        nesNumberList = json.load(filehandle)
+                                                nesNumberList.append(pickedNumber)
+                                                with open(os.path.join(consoleListsPath, "nesNumberList.json"), 'w') as filehandle:
+                                                        json.dump(nesNumberList, filehandle)
+                                        elif currentConsole.lower() == "n64":
+                                                with open(os.path.join(consoleListsPath, "n64NumberList.json"), 'r') as filehandle:
+                                                        n64NumberList = json.load(filehandle)
+                                                n64NumberList.append(pickedNumber)
+                                                with open(os.path.join(consoleListsPath, "n64NumberList.json"), 'w') as filehandle:
+                                                        json.dump(n64NumberList, filehandle)
+                                        elif currentConsole.lower() == "gb":
+                                                with open(os.path.join(consoleListsPath, "gbNumberList.json"), 'r') as filehandle:
+                                                        gbNumberList = json.load(filehandle)
+                                                gbNumberList.append(pickedNumber)
+                                                with open(os.path.join(consoleListsPath, "gbNumberList.json"), 'w') as filehandle:
+                                                        json.dump(gbNumberList, filehandle)
 
                                 outputMessage = outputMessage.replace("$user", pickedUser)
                                 outputMessage2 = outputMessage2.replace("$user", username)
-                                outputMessage2 = outputMessage2.replace("$number", str(pickedNumber))
+                                outputMessage2 = outputMessage2.replace("$game", currentGame)
                                 
                                 Parent.SendStreamMessage(outputMessage2)
                                 
                         elif not (userList or userNumbers):
-                                outputMessage = settings["emptyResponse"]
+                                with open(os.path.join(responseListsPath, "nextButQueueEmptyResponses.json"), 'r') as filehandle:
+                                        nextButQueueEmptyResponses = json.load(filehandle)
+                                
+                                nextButQueueEmptyResponsesLength = len(nextButQueueEmptyResponses)
+                                randLine = (Parent.GetRandom(1, nextButQueueEmptyResponsesLength) - 1)
+                                outputMessage = nextButQueueEmptyResponses[randLine]
                                 outputMessage = outputMessage.replace("$user", username)
-                                outputMessage = outputMessage.replace("$nextCommand", settings["nextCommand"])
 
                         Parent.SendStreamMessage(outputMessage)
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["modeCommand"]) and (Parent.HasPermission(data.User, settings["modePermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["modeCommand"]) and (Parent.HasPermission(data.User, permissions["modePermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
 
@@ -348,41 +428,41 @@ def Execute(data):
                                 try:
                                         mode = data.GetParam(1)
                                 except:
-                                        mode = rouletteMode
+                                        mode = defaultMode
 
-                                if mode == "Random" or mode == "random" or mode == "RANDOM":
-                                        rouletteMode = "Random"
+                                if mode.lower() == "random":
+                                        currentMode = "Random"
                                         outputMessage = settings["modeRandomResponse"]
-                                elif mode == "Queue" or mode == "queue" or mode == "QUEUE":
-                                        rouletteMode = "Queue"
+                                elif mode.lower() == "queue":
+                                        currentMode = "Queue"
                                         outputMessage = settings["modeQueueResponse"]
                                 else:
                                         outputMessage = settings["modeNotChangedResponse"]
                                         outputMessage = outputMessage.replace("$user", username)
-                                        outputMessage = outputMessage.replace("$modeCommand", settings["modeCommand"])
+                                        outputMessage = outputMessage.replace("$modeCommand", commands["modeCommand"])
 
                         else:
                                 outputMessage = settings["modeNotChangedResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
-                                outputMessage = outputMessage.replace("$modeCommand", settings["modeCommand"])
+                                outputMessage = outputMessage.replace("$modeCommand", commands["modeCommand"])
                                         
 
                         Parent.SendStreamMessage(outputMessage)
                         
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["queueCommand"]) and (Parent.HasPermission(data.User, settings["queuePermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["queueCommand"]) and (Parent.HasPermission(data.User, permissions["queuePermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
 
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
-                        elif rouletteMode == "Random":
+                        elif currentMode == "Random":
                                 outputMessage = settings["queueRandomResponse"]
                                 total = str(len(userList))
                                 outputMessage = outputMessage.replace("$total", total)
-                        elif rouletteMode == "Queue":
+                        elif currentMode == "Queue":
                                 if userList or userNumbers:
                                         outputMessage = settings["queueFiveResponse"]
                                         outputMessage = outputMessage.replace("$user1", userList[0])
@@ -422,27 +502,34 @@ def Execute(data):
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["pickCommand"]) and (Parent.HasPermission(data.User, settings["pickPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["pickCommand"]) and (Parent.HasPermission(data.User, permissions["pickPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
 
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
-                        elif (data.GetParamCount() == 2) and not (username in userList) and not (username in userPicked):
+                        elif (data.GetParamCount() == 2) and not (username in userList) and not (username in usersPicked):
                                 try: 
                                         number = int(data.GetParam(1))
                                 except:
                                         if data.GetParam(1) == 'random':
                                                 number = Parent.GetRandom(1, consoleMax)
-                                                while number in userNumbers or number in numbersPicked:
+                                                while (number in userNumbers) or (number in numbersPicked) or (keepTrack and(number in currentConsoleList)):
                                                         number = Parent.GetRandom(1, consoleMax)
 
                                                 userList.append(username)
                                                 userNumbers.append(number)
-                                                outputMessage = settings["enteredResponse"]
+                                                with open(os.path.join(responseListsPath, "userPickedNumberResponses.json"), 'r') as filehandle:
+                                                        userPickedNumberResponses = json.load(filehandle)
+                                                
+                                                userPickedNumberResponsesLength = len(userPickedNumberResponses)
+                                                randLine = (Parent.GetRandom(1, userPickedNumberResponsesLength) - 1)
+                                                outputMessage = userPickedNumberResponses[randLine]
                                                 outputMessage = outputMessage.replace("$user", username)
                                                 outputMessage = outputMessage.replace("$number", str(number))
+                                                rand = Parent.GetRandom(1, consoleMax)
+                                                outputMessage = outputMessage.replace("$rand", str(rand))
                                         else:
                                                 outputMessage = settings["invalidNumberResponse"]
                                                 outputMessage = outputMessage.replace("$user", username)
@@ -452,33 +539,62 @@ def Execute(data):
                                         
                                         return
 
-                                if (number in userNumbers) or (number in numbersPicked):
-                                        outputMessage = settings["alreadyPickedResponse"]
-                                        outputMessage = outputMessage.replace("$user", username)
+                                if (number in userNumbers) or (number in numbersPicked) or (keepTrack and(number in currentConsoleList)):
+                                        if (keepTrack and(number in currentConsoleList)):
+                                                outputMessage = settings["alreadyPickedPreviousStreamResponse"]
+                                                outputMessage = outputMessage.replace("$user", username)
+                                        else:
+                                                with open(os.path.join(responseListsPath, "numberAlreadyPickedResponses.json"), 'r') as filehandle:
+                                                        numberAlreadyPickedResponses = json.load(filehandle)
+                                                
+                                                numberAlreadyPickedResponsesLength = len(numberAlreadyPickedResponses)
+                                                randLine = (Parent.GetRandom(1, numberAlreadyPickedResponsesLength) - 1)
+                                                outputMessage = numberAlreadyPickedResponses[randLine]
+                                                outputMessage = outputMessage.replace("$user", username)
+                                                
                                 elif (number > consoleMax) or (number < 1):
-                                        outputMessage = settings["outOfBoundsResponse"]
-                                        outputMessage = outputMessage.replace("$user", username)
-                                        outputMessage = outputMessage.replace("$consoleMax", str(consoleMax))
+                                        if (number > consoleMax):
+                                                with open(os.path.join(responseListsPath, "numberOutOfBoundsResponses.json"), 'r') as filehandle:
+                                                        numberOutOfBoundsResponses = json.load(filehandle)
+                                                
+                                                numberOutOfBoundsResponsesLength = len(numberOutOfBoundsResponses)
+                                                randLine = (Parent.GetRandom(1, numberOutOfBoundsResponsesLength) - 1)
+                                                outputMessage = numberOutOfBoundsResponses[randLine]
+                                                outputMessage = outputMessage.replace("$user", username)
+                                                outputMessage = outputMessage.replace("$consoleMax", str(consoleMax))
+                                        else:
+                                                outputMessage = settings["zeroResponse"]
+                                                outputMessage = outputMessage.replace("$user", username)
                                 else:
                                         userList.append(username)
                                         userNumbers.append(number)
-                                        outputMessage = settings["enteredResponse"]
+                                        with open(os.path.join(responseListsPath, "userPickedNumberResponses.json"), 'r') as filehandle:
+                                                userPickedNumberResponses = json.load(filehandle)
+                                        
+                                        userPickedNumberResponsesLength = len(userPickedNumberResponses)
+                                        randLine = (Parent.GetRandom(1, userPickedNumberResponsesLength) - 1)
+                                        outputMessage = userPickedNumberResponses[randLine]
+                                        outputMessage = outputMessage.replace("$user", username)
                                         outputMessage = outputMessage.replace("$user", username)
                                         outputMessage = outputMessage.replace("$number", str(number))
                                         
-                        elif (username in userList) or (username in userPicked):
-                                outputMessage = settings["alreadyEnteredResponse"]
-                                outputMessage = outputMessage.replace("$user", username)
+                        elif (username in userList) or (username in usersPicked):
+                                if (username in usersPicked):
+                                        outputMessage = settings["alreadyPickedResponse"]
+                                        outputMessage = outputMessage.replace("$user", username)
+                                elif (username in userList):
+                                        outputMessage = settings["alreadyEnteredResponse"]
+                                        outputMessage = outputMessage.replace("$user", username)
                         else:
                                 outputMessage = settings["noNumberResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
-                                outputMessage = outputMessage.replace("$pickCommand", settings["pickCommand"])
+                                outputMessage = outputMessage.replace("$pickCommand", commands["pickCommand"])
 
                         Parent.SendStreamMessage(outputMessage)
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["consoleCommand"]) and (Parent.HasPermission(data.User, settings["consolePermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["consoleCommand"]) and (Parent.HasPermission(data.User, permissions["consolePermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         outputMessage2 = ""
                         username = data.UserName
@@ -490,18 +606,30 @@ def Execute(data):
                                 except:
                                         console = defaultConsole
 
-                                if console == "SNES" or console == "snes" or console == "Snes":
+                                if console.lower() == "snes":
                                         consoleMax = 725
-                                elif console == "NES" or console == "nes" or console == "Nes":
+                                        currentConsole = "SNES"
+                                        currentConsoleList = snesNumberList
+                                        currentGameList = snesGameList
+                                elif console.lower() == "nes":
                                         consoleMax = 677
-                                elif console == "N64" or console == "n64":
+                                        currentConsole = "NES"
+                                        currentConsoleList = nesNumberList
+                                        currentGameList = nesGameList
+                                elif console.lower() == "n64":
                                         consoleMax = 296
-                                elif console == "GB" or console == "gb" or console == "Gb":
+                                        currentConsole = "N64"
+                                        currentConsoleList = n64NumberList
+                                        currentGameList = n64GameList
+                                elif console.lower() == "gb":
                                         consoleMax = 582
+                                        currentConsole = "GB"
+                                        currentConsoleList = gbNumberList
+                                        currentGameList = gbGameList
                                 else:
                                         outputMessage = settings["consoleNotChangedResponse"]
                                         outputMessage = outputMessage.replace("$user", username)
-                                        outputMessage = outputMessage.replace("$consoleCommand", settings["consoleCommand"])
+                                        outputMessage = outputMessage.replace("$consoleCommand", commands["consoleCommand"])
 
                                         Parent.SendStreamMessage(outputMessage)
 
@@ -518,30 +646,31 @@ def Execute(data):
 
                                 outputMessage = settings["consoleChangedResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
-                                outputMessage = outputMessage.replace("$console", console)
+                                outputMessage = outputMessage.replace("$console", currentConsole)
 
                         else:
                                 outputMessage = settings["consoleNotChangedResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
-                                outputMessage = outputMessage.replace("$consoleCommand", settings["consoleCommand"])
+                                outputMessage = outputMessage.replace("$consoleCommand", commands["consoleCommand"])
 
                         Parent.SendStreamMessage(outputMessage)
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["maxCommand"]) and (Parent.HasPermission(data.User, settings["maxPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["maxCommand"]) and (Parent.HasPermission(data.User, permissions["maxPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
                         
                         outputMessage = settings["maxResponse"]
                         outputMessage = outputMessage.replace("$user", username)
+                        outputMessage = outputMessage.replace("$currentConsole", currentConsole)
                         outputMessage = outputMessage.replace("$consoleMax", str(consoleMax))
 
                         Parent.SendStreamMessage(outputMessage)
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["leaveCommand"]) and (Parent.HasPermission(data.User, settings["leavePermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["leaveCommand"]) and (Parent.HasPermission(data.User, permissions["leavePermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
 
@@ -552,7 +681,12 @@ def Execute(data):
                                 temp2 = userList.index(username)
                                 userList.pop(temp2)
                                 userNumbers.pop(temp2)
-                                outputMessage = settings["leaveResponse"]
+                                with open(os.path.join(responseListsPath, "userLeavesQueueResponses.json"), 'r') as filehandle:
+                                        userLeavesQueueResponses = json.load(filehandle)
+                                
+                                userLeavesQueueResponsesLength = len(userLeavesQueueResponses)
+                                randLine = (Parent.GetRandom(1, userLeavesQueueResponsesLength) - 1)
+                                outputMessage = userLeavesQueueResponses[randLine]
                                 outputMessage = outputMessage.replace("$user", username)
                         else:
                                 outputMessage = settings["notEnteredLeaveResponse"]
@@ -562,7 +696,7 @@ def Execute(data):
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["spotCommand"]) and (Parent.HasPermission(data.User, settings["spotPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["spotCommand"]) and (Parent.HasPermission(data.User, permissions["spotPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
 
@@ -571,7 +705,7 @@ def Execute(data):
                                 outputMessage = outputMessage.replace("$user", username)
                         elif (username in userList):
                                 total = str(len(userList))
-                                if rouletteMode == "Queue":
+                                if currentMode == "Queue":
                                         spot = str(userList.index(username) + 1)
                                         outputMessage = settings["spotResponse"]
                                         outputMessage = outputMessage.replace("$user", username)
@@ -589,7 +723,7 @@ def Execute(data):
 
                         return
                         
-                elif data.IsChatMessage() and ((data.GetParam(0).lower() == settings["infoCommand"]) or (data.GetParam(0).lower() == "!commands")) and (Parent.HasPermission(data.User, settings["infoPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and ((data.GetParam(0).lower() == commands["infoCommand"]) or (data.GetParam(0).lower() == "!commands")) and (Parent.HasPermission(data.User, permissions["infoPermission"], "") or data.UserName == "LiquidDeath911"):
 
                         outputMessage = "For info about Retro Roulette and its command list go here: https://pastebin.com/TxWA4CmS"
 
@@ -597,63 +731,75 @@ def Execute(data):
 
                         return
 
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["currentCommand"]) and (Parent.HasPermission(data.User, settings["currentPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["currentCommand"]) and (Parent.HasPermission(data.User, permissions["currentPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
-
+                        username = data.UserName
+                        
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
                         else:
                                 outputMessage = settings["currentResponse"]
                                 outputMessage = outputMessage.replace("$user", currentUser)
-                                outputMessage = outputMessage.replace("$number", str(currentNum))
+                                outputMessage = outputMessage.replace("$game", currentGame)
 
                         Parent.SendStreamMessage(outputMessage)
 
                         return
                         
-                elif data.IsChatMessage() and (data.GetParam(0).lower() == settings["whoCommand"]) and (Parent.HasPermission(data.User, settings["whoPermission"], "") or data.UserName == "LiquidDeath911"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["whoCommand"]) and (Parent.HasPermission(data.User, permissions["whoPermission"], "") or data.UserName == "LiquidDeath911"):
                         outputMessage = ""
                         username = data.UserName
+                        number = 0
 
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
                         elif (data.GetParamCount() == 2):
-                                try:
-                                        otherUser = data.GetParam(1)
+                                try: 
+                                        number = int(data.GetParam(1))
                                 except:
-                                        if (username in userList):
-                                                whoTemp = userList.index(username)
+                                        otherUser = data.GetParam(1)
+                                        
+                                        if (otherUser in userList):
+                                                whoTemp = userList.index(otherUser)
                                                 whoNum = userNumbers[whoTemp]
-                                                outputMessage = settings["whoResponse"]
-                                                outputMessage = outputMessage.replace("$user", username)
+                                                outputMessage = settings["whoByNameResponse"]
+                                                outputMessage = outputMessage.replace("$user", otherUser)
                                                 outputMessage = outputMessage.replace("$number", str(whoNum))
-                                                
                                                 Parent.SendStreamMessage(outputMessage)
-                                                
+                                                return
+                                        elif (otherUser in usersPicked):
+                                                whoTemp = usersPicked.index(otherUser)
+                                                whoNum = numbersPicked[whoTemp]
+                                                outputMessage = settings["whoByAlreadyPlayedNameResponse"]
+                                                outputMessage = outputMessage.replace("$user", otherUser)
+                                                outputMessage = outputMessage.replace("$number", str(whoNum))
+                                                Parent.SendStreamMessage(outputMessage)
                                                 return
                                         else:
                                                 outputMessage = settings["whoNoneResponse"]
-                                                
                                                 Parent.SendStreamMessage(outputMessage)
-                                                
                                                 return
-                                        
-                                if (otherUser in userList):
-                                        whoTemp = userList.index(otherUser)
-                                        whoNum = userNumbers[whoTemp]
-                                        outputMessage = settings["whoOtherResponse"]
-                                        outputMessage = outputMessage.replace("$user", username)
-                                        outputMessage = outputMessage.replace("$number", str(whoNum))
+                                if (number in userNumbers):
+                                        whoNum = userNumbers.index(number)
+                                        whoTemp = userList[whoNum]
+                                        outputMessage = settings["whoByNumberResponse"]
+                                        outputMessage = outputMessage.replace("$user", whoTemp)
+                                        outputMessage = outputMessage.replace("$number", str(number))
+                                elif (number in numbersPicked):
+                                        whoNum = numbersPicked.index(number)
+                                        whoTemp = usersPicked[whoNum]
+                                        outputMessage = settings["whoByAlreadyPlayedNumberResponse"]
+                                        outputMessage = outputMessage.replace("$user", whoTemp)
+                                        outputMessage = outputMessage.replace("$number", str(number))
                                 else:
                                         outputMessage = settings["whoNoneResponse"]
-
                         else:
                                 if (username in userList):
                                         whoTemp = userList.index(username)
                                         whoNum = userNumbers[whoTemp]
-                                        outputMessage = settings["whoResponse"]
+                                        outputMessage = settings["whoSelfResponse"]
                                         outputMessage = outputMessage.replace("$user", username)
                                         outputMessage = outputMessage.replace("$number", str(whoNum))
                                         
@@ -664,21 +810,227 @@ def Execute(data):
 
                         return
 
-        elif data.IsChatMessage() and (data.GetParam(0).lower() == "!updaterr") and (data.UserName == "LiquidDeath911" or data.UserName == "TigeltoN"):
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["updateCommand"]) and (Parent.HasPermission(data.User, permissions["updatePermission"], "") or data.UserName == "LiquidDeath911"):
+                        outputMessage = ""
+                        
+                        if isRouletteStarted:
+                                outputMessage = "Please end Retro Roulette before updating."
+                                Parent.SendStreamMessage(outputMessage)
+                        else:
+                                outputMessage = "Updated."
+                                Parent.SendStreamMessage(outputMessage)
+                                Init()
+                        return
 
-                if isRouletteStarted:
-                        outputMessage = "Please end RetroRoulette before updating."
-                else:
-                        update(https://github.com/LiquidDeath911/RetroRoulette, force_update=True)
-                
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["resetConsoleCommand"]) and (Parent.HasPermission(data.User, permissions["resetConsolePermission"], "") or data.UserName == "LiquidDeath911"):
+                        outputMessage = ""
+                        username = data.UserName
+                        
+                        if (data.GetParamCount() == 2):
+                                try:
+                                        console = data.GetParam(1)
+                                except:
+                                        outputMessage = settings["consoleNotResetResponse"]
+                                        outputMessage = outputMessage.replace("$user", username)
+                                        outputMessage = outputMessage.replace("$resetConsoleCommand", commands["resetConsoleCommand"])
+
+                                        Parent.SendStreamMessage(outputMessage)
+
+                                        return
+
+                                if console.lower() == "snes":
+                                        snesNumberList = []
+                                        with open(os.path.join(consoleListsPath, "snesNumberList.json"), 'w') as filehandle:
+                                                json.dump(snesNumberList, filehandle)
+                                elif console.lower() == "nes":
+                                        nesNumberList = []
+                                        with open(os.path.join(consoleListsPath, "nesNumberList.json"), 'w') as filehandle:
+                                                json.dump(nesNumberList, filehandle)
+                                elif console.lower() == "n64":
+                                        n64NumberList = []
+                                        with open(os.path.join(consoleListsPath, "n64NumberList.json"), 'w') as filehandle:
+                                                json.dump(n64NumberList, filehandle)
+                                elif console.lower() == "gb":
+                                        gbNumberList = []
+                                        with open(os.path.join(consoleListsPath, "gbNumberList.json"), 'w') as filehandle:
+                                                json.dump(gbNumberList, filehandle)
+                                else:
+                                        outputMessage = settings["consoleNotResetResponse"]
+                                        outputMessage = outputMessage.replace("$user", username)
+                                        outputMessage = outputMessage.replace("$resetConsoleCommand", commands["resetConsoleCommand"])
+
+                                        Parent.SendStreamMessage(outputMessage)
+                                        
+                                        return
+                                
+                                outputMessage = settings["consoleResetResponse"]
+                                outputMessage = outputMessage.replace("$user", username)
+                                outputMessage = outputMessage.replace("$console", console)
+
+                                Parent.SendStreamMessage(outputMessage)
+                        else:
+                                outputMessage = settings["consoleNotResetResponse"]
+                                outputMessage = outputMessage.replace("$user", username)
+                                outputMessage = outputMessage.replace("$resetConsoleCommand", commands["resetConsoleCommand"])
+
+                                Parent.SendStreamMessage(outputMessage)
+                        
+                        return
+
+                elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["shuffleCommand"]) and (Parent.HasPermission(data.User, permissions["shufflePermission"], "") or data.UserName == "LiquidDeath911"):
+                        outputMessage = ""
+                        username = data.UserName
+                        
+                        if (data.GetParamCount() == 2):
+                                try:
+                                        console = data.GetParam(1)
+                                except:
+                                        outputMessage = settings["shuffleFailedResponse"]
+                                        outputMessage = outputMessage.replace("$user", username)
+                                        outputMessage = outputMessage.replace("$shuffleCommand", commands["shuffleCommand"])
+
+                                        Parent.SendStreamMessage(outputMessage)
+
+                                        return
+
+                                if console.lower() == "snes":
+                                        with open(os.path.join(gameListsPath, "snesGameListOriginal.json"), 'r') as filehandle:
+                                                snesGameList = json.load(filehandle)
+                                        random.shuffle(snesGameList)
+                                        currentGameList = snesGameList
+                                        with open(os.path.join(gameListsPath, "snesGameList.json"), 'w') as filehandle:
+                                                json.dump(snesGameList, filehandle)
+                                        snesNumberList = []
+                                        with open(os.path.join(consoleListsPath, "snesNumberList.json"), 'w') as filehandle:
+                                                json.dump(snesNumberList, filehandle)
+                                elif console.lower() == "nes":
+                                        with open(os.path.join(gameListsPath, "nesGameListOriginal.json"), 'r') as filehandle:
+                                                nesGameList = json.load(filehandle)
+                                        random.shuffle(nesGameList)
+                                        currentGameList = nesGameList
+                                        with open(os.path.join(gameListsPath, "nesGameList.json"), 'w') as filehandle:
+                                                json.dump(nesGameList, filehandle)
+                                        nesNumberList = []
+                                        with open(os.path.join(consoleListsPath, "nesNumberList.json"), 'w') as filehandle:
+                                                json.dump(nesNumberList, filehandle)
+                                elif console.lower() == "n64":
+                                        with open(os.path.join(gameListsPath, "n64GameListOriginal.json"), 'r') as filehandle:
+                                                n64GameList = json.load(filehandle)
+                                        random.shuffle(n64GameList)
+                                        currentGameList = n64GameList
+                                        with open(os.path.join(gameListsPath, "n64GameList.json"), 'w') as filehandle:
+                                                json.dump(n64GameList, filehandle)
+                                        n64NumberList = []
+                                        with open(os.path.join(consoleListsPath, "n64NumberList.json"), 'w') as filehandle:
+                                                json.dump(n64NumberList, filehandle)
+                                elif console.lower() == "gb":
+                                        with open(os.path.join(gameListsPath, "gbGameListOriginal.json"), 'r') as filehandle:
+                                                gbGameList = json.load(filehandle)
+                                        random.shuffle(gbGameList)
+                                        currentGameList = gbGameList
+                                        with open(os.path.join(gameListsPath, "gbGameList.json"), 'w') as filehandle:
+                                                json.dump(gbGameList, filehandle)
+                                        gbNumberList = []
+                                        with open(os.path.join(consoleListsPath, "gbNumberList.json"), 'w') as filehandle:
+                                                json.dump(gbNumberList, filehandle)
+                                elif console.lower() == "all":
+                                        with open(os.path.join(gameListsPath, "snesGameListOriginal.json"), 'r') as filehandle:
+                                                snesGameList = json.load(filehandle)
+                                        random.shuffle(snesGameList)
+                                        currentGameList = snesGameList
+                                        with open(os.path.join(gameListsPath, "snesGameList.json"), 'w') as filehandle:
+                                                json.dump(snesGameList, filehandle)
+                                                
+                                        snesNumberList = []
+                                        with open(os.path.join(consoleListsPath, "snesNumberList.json"), 'w') as filehandle:
+                                                json.dump(snesNumberList, filehandle)
+
+
+                                        with open(os.path.join(gameListsPath, "nesGameListOriginal.json"), 'r') as filehandle:
+                                                nesGameList = json.load(filehandle)
+                                        random.shuffle(nesGameList)
+                                        currentGameList = nesGameList
+                                        with open(os.path.join(gameListsPath, "nesGameList.json"), 'w') as filehandle:
+                                                json.dump(nesGameList, filehandle)
+                                        nesNumberList = []
+                                        with open(os.path.join(consoleListsPath, "nesNumberList.json"), 'w') as filehandle:
+                                                json.dump(nesNumberList, filehandle)
+
+                                        with open(os.path.join(gameListsPath, "n64GameListOriginal.json"), 'r') as filehandle:
+                                                n64GameList = json.load(filehandle)
+                                        random.shuffle(n64GameList)
+                                        currentGameList = n64GameList
+                                        with open(os.path.join(gameListsPath, "n64GameList.json"), 'w') as filehandle:
+                                                json.dump(n64GameList, filehandle)
+                                        n64NumberList = []
+                                        with open(os.path.join(consoleListsPath, "n64NumberList.json"), 'w') as filehandle:
+                                                json.dump(n64NumberList, filehandle)
+
+                                        with open(os.path.join(gameListsPath, "gbGameListOriginal.json"), 'r') as filehandle:
+                                                gbGameList = json.load(filehandle)
+                                        random.shuffle(gbGameList)
+                                        currentGameList = gbGameList
+                                        with open(os.path.join(gameListsPath, "gbGameList.json"), 'w') as filehandle:
+                                                json.dump(gbGameList, filehandle)
+                                        gbNumberList = []
+                                        with open(os.path.join(consoleListsPath, "gbNumberList.json"), 'w') as filehandle:
+                                                json.dump(gbNumberList, filehandle)
+                                else:
+                                        outputMessage = settings["shuffleFailedResponse"]
+                                        outputMessage = outputMessage.replace("$user", username)
+                                        outputMessage = outputMessage.replace("$shuffleCommand", commands["shuffleCommand"])
+
+                                        Parent.SendStreamMessage(outputMessage)
+                                        
+                                        return
+                                
+                                outputMessage = settings["shuffleResponse"]
+                                outputMessage = outputMessage.replace("$user", username)
+                                if (console == "all"):
+                                        outputMessage = outputMessage.replace("$console", "all consoles")
+                                else:
+                                        outputMessage = outputMessage.replace("$console", console)
+
+                                Parent.SendStreamMessage(outputMessage)
+                        else:
+                                outputMessage = settings["shuffleFailedResponse"]
+                                outputMessage = outputMessage.replace("$user", username)
+                                outputMessage = outputMessage.replace("$shuffleCommand", commands["shuffleCommand"])
+
+                                Parent.SendStreamMessage(outputMessage)
+                        
+                        return
+                        
+
+        
 	return
 
 def ReloadSettings(jsonData):
 	Init()
 	return
 
+def OpenBannedList():
+	location = os.path.join(path, "bannedList.json")
+	os.startfile(location)
+	return
+
+def OpenCommands():
+	location = os.path.join(path, "commands.json")
+	os.startfile(location)
+	return
+
+def OpenPermissions():
+	location = os.path.join(path, "permissions.json")
+	os.startfile(location)
+	return
+
+def OpenFolder():
+	location = path
+	os.startfile(location)
+	return
+
 def OpenReadMe():
-	location = os.path.join(os.path.dirname(__file__), "README.txt")
+	location = os.path.join(path, "README.MD")
 	os.startfile(location)
 	return
 
@@ -687,145 +1039,3 @@ def ScriptToggled(state):
 
 def Tick():
         return
-
-def update(dl_url, force_update=False):
-    """
-Attempts to download the update url in order to find if an update is needed.
-If an update is needed, the current script is backed up and the update is
-saved in its place.
-"""
-    import urllib
-    import re
-    from subprocess import call
-    def compare_versions(vA, vB):
-        """
-Compares two version number strings
-@param vA: first version string to compare
-@param vB: second version string to compare
-@author <a href="http_stream://sebthom.de/136-comparing-version-numbers-in-jython-pytho/">Sebastian Thomschke</a>
-@return negative if vA < vB, zero if vA == vB, positive if vA > vB.
-"""
-        if vA == vB: return 0
-
-        def num(s):
-            if s.isdigit(): return int(s)
-            return s
-
-        seqA = map(num, re.findall('\d+|\w+', vA.replace('-SNAPSHOT', '')))
-        seqB = map(num, re.findall('\d+|\w+', vB.replace('-SNAPSHOT', '')))
-
-        # this is to ensure that 1.0 == 1.0.0 in cmp(..)
-        lenA, lenB = len(seqA), len(seqB)
-        for i in range(lenA, lenB): seqA += (0,)
-        for i in range(lenB, lenA): seqB += (0,)
-
-        rc = cmp(seqA, seqB)
-
-        if rc == 0:
-            if vA.endswith('-SNAPSHOT'): return -1
-            if vB.endswith('-SNAPSHOT'): return 1
-        return rc
-
-    # dl the first 256 bytes and parse it for version number
-    try:
-        http_stream = urllib.urlopen(dl_url)
-        update_file = http_stream.read(256)
-        http_stream.close()
-    except IOError, (errno, strerror):
-        print "Unable to retrieve version data"
-        print "Error %s: %s" % (errno, strerror)
-        return
-
-    match_regex = re.search(r'__version__ *= *"(\S+)"', update_file)
-    if not match_regex:
-        print "No version info could be found"
-        return
-    update_version = match_regex.group(1)
-
-    if not update_version:
-        print "Unable to parse version data"
-        return
-
-    if force_update:
-        print "Forcing update, downloading version %s..." \
-            % update_version
-    else:
-        cmp_result = compare_versions(__version__, update_version)
-        if cmp_result < 0:
-            print "Newer version %s available, downloading..." % update_version
-        elif cmp_result > 0:
-            print "Local version %s newer then available %s, not updating." \
-                % (__version__, update_version)
-            return
-        else:
-            print "You already have the latest version."
-            return
-
-    # dl, backup, and save the updated script
-    app_path = os.path.realpath(sys.argv[0])
-
-    if not os.access(app_path, os.W_OK):
-        print "Cannot update -- unable to write to %s" % app_path
-
-    dl_path = app_path + ".new"
-    backup_path = app_path + ".old"
-    try:
-        dl_file = open(dl_path, 'w')
-        http_stream = urllib.urlopen(dl_url)
-        total_size = None
-        bytes_so_far = 0
-        chunk_size = 8192
-        try:
-            total_size = int(http_stream.info().getheader('Content-Length').strip())
-        except:
-            # The header is improper or missing Content-Length, just download
-            dl_file.write(http_stream.read())
-
-        while total_size:
-            chunk = http_stream.read(chunk_size)
-            dl_file.write(chunk)
-            bytes_so_far += len(chunk)
-
-            if not chunk:
-                break
-
-            percent = float(bytes_so_far) / total_size
-            percent = round(percent*100, 2)
-            sys.stdout.write("Downloaded %d of %d bytes (%0.2f%%)\r" %
-                (bytes_so_far, total_size, percent))
-
-            if bytes_so_far >= total_size:
-                sys.stdout.write('\n')
-
-        http_stream.close()
-        dl_file.close()
-    except IOError, (errno, strerror):
-        print "Download failed"
-        print "Error %s: %s" % (errno, strerror)
-        return
-
-    try:
-        if os.path.isfile(backup_path):
-            os.remove(backup_path)
-        os.rename(app_path, backup_path)
-    except OSError, (errno, strerror):
-        print "Unable to rename %s to %s: (%d) %s" \
-            % (app_path, backup_path, errno, strerror)
-        return
-
-    try:
-        os.rename(dl_path, app_path)
-    except OSError, (errno, strerror):
-        print "Unable to rename %s to %s: (%d) %s" \
-            % (dl_path, app_path, errno, strerror)
-        return
-
-    try:
-        import shutil
-        shutil.copymode(backup_path, app_path)
-    except:
-        os.chmod(app_path, 0755)
-
-    print "New version installed as %s" % app_path
-    print "(previous version backed up to %s)" % (backup_path)
-    return

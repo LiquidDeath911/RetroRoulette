@@ -1,0 +1,22 @@
+{
+"startCommand": "!startrr",
+"endCommand": "!endrr",
+"resetCommand": "!resetrr",
+"restartCommand": "!restartrr",
+"nextCommand": "!nextrr",
+"modeCommand": "!moderr",
+"pickCommand":  "!pickrr",
+"consoleCommand": "!consolerr",
+"maxCommand": "!maxrr",
+"leaveCommand": "!leaverr",
+"queueCommand": "!queuerr",
+"spotCommand": "!spotrr",
+"infoCommand": "!inforr",
+"currentCommand": "!currentrr",
+"whoCommand": "!whorr",
+"banCommand": "!banrr",
+"unbanCommand": "!unbanrr",
+"updateCommand": "!updaterr",
+"resetConsoleCommand": "!resetconsolerr",
+"shuffleCommand": "!shufflerr"
+}
