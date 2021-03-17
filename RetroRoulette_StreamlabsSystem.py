@@ -3,7 +3,7 @@
 # This script is for keeping a record of what number a user
 # picks for TigeltoN's retro roulette streams on Twitch
 
-# IMPORTS
+## IMPORTS ##
 import clr
 import sys
 import json
@@ -11,54 +11,52 @@ import os
 import ctypes
 import codecs
 import random
-# /IMPORTS
 
-# SCRIPT INFO
+## SCRIPT INFO ##
 ScriptName = "Retro Roulette"
 Website = "https://github.com/LiquidDeath911/RetroRoulette"
 Description = "Retro Roulette for Streamlabs Chatbot"
 Creator = "LiquidDeath911"
 Version = "2.0.1"
-# /SCRIPT INFO
 
-# GLOBAL VARIABLES
-## file paths
+## GLOBAL VARIABLES ##
+# file paths
 path = os.path.dirname(__file__)
 consoleListsPath = os.path.join(path, "ConsoleLists")
 responseListsPath = os.path.join(path, "ResponseLists")
 gameListsPath = os.path.join(path, "GameLists")
-## /file paths
-## defaults
+
+# defaults
 settings = {}
 liveOnly = True
 isRouletteStarted = False
 keepTrack = False
 defaultMode = ""
-## /defaults
-## json files
+
+# json files
 bannedList = []
 commands = {}
 permissions = {}
-## /json files
-## game lists
+
+# game lists
 n64GameList = []
 snesGameList = []
 nesGameList = []
 gbGameList = []
-## /game lists
-## user and number lists
+
+# user and number lists
 userList = []
 userNumbers = []
 usersPicked = []
 numbersPicked = []
-## /user and number lists
-## console number lists
+
+# console number lists
 n64NumberList = []
 snesNumberList = []
 nesNumberList = []
 gbNumberList = []
-## /console number lists
-## current elements and lists
+
+# current elements and lists
 currentConsoleList = []
 currentGameList = []
 currentConsole = ""
@@ -67,17 +65,16 @@ currentUser = ""
 currentGame = ""
 currentNum = 0
 consoleMax = 0
-## /current elements and lists
-## random response lists
+
+# random response lists
 numberAlreadyPickedResponses = []
 userLeavesQueueResponses = []
 userGotPickedResponses = []
 userPickedNumberResponses = []
 nextButQueueEmptyResponses = []
 numberOutOfBoundsResponses = []
-## /random response lists
-# /GLOBAL VARIABLES
 
+## FUNCTIONS ##
 # Init Function
 def Init():
 	global settings, defaultMode, consoleMax, bannedList, n64NumberList, snesNumberList, nesNumberList, gbNumberList, userGotPickedResponses, commands, permissions
@@ -219,24 +216,37 @@ def Init():
 
 	return
 
+# Execute Function
 def Execute(data):
 	global userList, userNumbers, usersPicked, commands, defaultMode, isRouletteStarted, defaultConsole, consoleMax, numbersPicked, currentNum, currentUser, userLeavesQueueResponses
 	global bannedList, n64NumberList, snesNumberList, nesNumberList, gbNumberList, userGotPickedResponses, nextButQueueEmptyResponses, numberAlreadyPickedResponses, userPickedNumberResponses
 	global numberOutOfBoundsResponses, currentMode, keepTrack, liveOnly, currentConsoleList, gbGameList, snesGameList, n64GameList, nesGameList, currentConsole, currentGameList, currentGame
 
+	# This 'if' checks for the following: chat message = command, username NOT in banned list, stream = live (if that setting is enabled)
         if data.IsChatMessage() and ((data.GetParam(0).lower() in commands.values()) or (data.GetParam(0).lower() == "!commands")) and not (data.UserName.lower() in bannedList) and ((liveOnly and Parent.IsLive()) or (not liveOnly or data.UserName == "LiquidDeath911")):
-                if data.IsChatMessage() and (data.GetParam(0).lower() == commands["banCommand"]) and (Parent.HasPermission(data.User, permissions["banPermission"], "") or data.UserName == "LiquidDeath911"):
-                        outputMessage = ""
 
+                ## BAN COMMAND ##
+                # This 'if' checks for the following: chat message = banCommand, user has permission to use that command
+                if data.IsChatMessage() and (data.GetParam(0).lower() == commands["banCommand"]) and (Parent.HasPermission(data.User, permissions["banPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
+                        outputMessage = ""
+                        toBan = ""
+
+                        # reading bannedList file
                         with open(os.path.join(path, "bannedList.json"), 'r') as filehandle:
                                 bannedList = json.load(filehandle)
 
+                        # checking to make sure there is an argument after the command
                         if (data.GetParamCount() == 2):
                                 try:
+                                        # username read from chat message, changed to all lowercase letters
                                         toBan = data.GetParam(1).lower()
                                 except:
                                         return
-                                if (not (toBan in bannedList)):
+                                
+                                # This 'if' checks to see if user is already in bannedList
+                                if not (toBan in bannedList):
+                                        # username added to ban list, all lowercase letters
                                         bannedList.append(toBan)
                                         outputMessage = settings["banResponse"]
                                         outputMessage = outputMessage.replace("$user", toBan)
@@ -246,24 +256,36 @@ def Execute(data):
 
                         Parent.SendStreamMessage(outputMessage)
 
+                        # writing to bannedList file after changes
                         with open(os.path.join(path, "bannedList.json"), 'w') as filehandle:
                                 json.dump(bannedList, filehandle)
 
                         return
 
+                ## UNBAN COMMAND ##
+                # This 'if' checks for the following: chat message = unbanCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["unbanCommand"]) and (Parent.HasPermission(data.User, permissions["unbanPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
+                        toUnBan = ""
 
+                        # reading bannedList file
                         with open(os.path.join(path, "bannedList.json"), 'r') as filehandle:
                                 bannedList = json.load(filehandle)
 
+                        # checking to make sure there is an argument after the command
                         if (data.GetParamCount() == 2):
                                 try:
+                                        # username read from chat message, changed to all lowercase letters
                                         toUnBan = data.GetParam(1).lower()
                                 except:
                                         return
+
+                                # This 'if' checks to see if user is in bannedList
                                 if (toUnBan in bannedList):
+                                        # finding the index of the username
                                         place = bannedList.IndexOf(toUnBan)
+                                        # popping username out of the list
                                         bannedList.pop(place)
                                         outputMessage = settings["unbanResponse"]
                                         outputMessage = outputMessage.replace("$user", toUnBan)
@@ -273,12 +295,16 @@ def Execute(data):
 
                         Parent.SendStreamMessage(outputMessage)
 
+                        # writing to bannedList file after changes
                         with open(os.path.join(path, "bannedList.json"), 'w') as filehandle:
                                 json.dump(bannedList, filehandle)
 
                         return
 
+                ## START COMMAND ##
+                # This 'if' checks for the following: chat message = startCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["startCommand"]) and (Parent.HasPermission(data.User, permissions["startPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
 
@@ -338,7 +364,10 @@ def Execute(data):
 
                         return
 
+                ## END COMMAND ##
+                # This 'if' checks for the following: chat message = endCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["endCommand"]) and (Parent.HasPermission(data.User, permissions["endPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
 
@@ -357,7 +386,10 @@ def Execute(data):
 
                         return
 
+                ## RESET COMMAND ##
+                # This 'if' checks for the following: chat message = resetCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["resetCommand"]) and (Parent.HasPermission(data.User, permissions["resetPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
 
@@ -377,7 +409,10 @@ def Execute(data):
 
                         return
 
+                ## RESTART COMMAND ##
+                # This 'if' checks for the following: chat message = restartCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["restartCommand"]) and (Parent.HasPermission(data.User, permissions["restartPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
 
@@ -397,13 +432,17 @@ def Execute(data):
 
                         return
 
+                ## NEXT COMMAND ##
+                # This 'if' checks for the following: chat message = nextCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["nextCommand"]) and (Parent.HasPermission(data.User, permissions["nextPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
                         pickedUser = ""
+                        pickedGame = ""
                         pickedNumber = 0
                         rand = 0
-                        pickedGame = ""
+                        randLine = 0
 
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
@@ -431,7 +470,7 @@ def Execute(data):
                                 currentNum = pickedNumber
                                 usersPicked.append(pickedUser)
                                 numbersPicked.append(pickedNumber)
-                                pickedGame = currentGameList[currentNum]
+                                pickedGame = currentGameList[pickedNumber]
                                 currentGame = pickedGame
 
                                 if keepTrack:
@@ -479,9 +518,13 @@ def Execute(data):
 
                         return
 
+                ## MODE COMMAND ##
+                # This 'if' checks for the following: chat message = modeCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["modeCommand"]) and (Parent.HasPermission(data.User, permissions["modePermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
+                        mode = ""
 
                         if (data.GetParamCount() == 2):
                                 try:
@@ -510,17 +553,21 @@ def Execute(data):
 
                         return
 
+                ## QUEUE COMMAND ##
+                # This 'if' checks for the following: chat message = queueCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["queueCommand"]) and (Parent.HasPermission(data.User, permissions["queuePermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
+                        total = 0
 
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
                         elif currentMode == "Random":
                                 outputMessage = settings["queueRandomResponse"]
-                                total = str(len(userList))
-                                outputMessage = outputMessage.replace("$total", total)
+                                total = len(userList)
+                                outputMessage = outputMessage.replace("$total", str(total))
                         elif currentMode == "Queue":
                                 if userList or userNumbers:
                                         outputMessage = settings["queueFiveResponse"]
@@ -561,9 +608,15 @@ def Execute(data):
 
                         return
 
+                ## PICK COMMAND ##
+                # This 'if' checks for the following: chat message = pickCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["pickCommand"]) and (Parent.HasPermission(data.User, permissions["pickPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
+                        number = 0
+                        rand = 0
+                        randLine = 0
 
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
@@ -653,11 +706,16 @@ def Execute(data):
 
                         return
 
+                ## CONSOLE COMMAND ##
+                # This 'if' checks for the following: chat message = consoleCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["consoleCommand"]) and (Parent.HasPermission(data.User, permissions["consolePermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         outputMessage2 = ""
                         username = data.UserName
                         console = ""
+                        outOfBounds = 0
+                        unluckyUser = ""
 
                         if (data.GetParamCount() == 2):
                                 try:
@@ -696,11 +754,11 @@ def Execute(data):
 
                                 for num in userNumbers:
                                         if num > consoleMax:
-                                                temp3 = userNumbers.index(num)
-                                                tempName = userList.pop(temp3)
-                                                userNumbers.pop(temp3)
+                                                outOfBounds = userNumbers.index(num)
+                                                unluckyUser = userList.pop(outOfBounds)
+                                                userNumbers.pop(outOfBounds)
                                                 outputMessage2 = settings["removedResponse"]
-                                                outputMessage2 = outputMessage.replace("$user", tempName)
+                                                outputMessage2 = outputMessage.replace("$user", unluckyUser)
                                                 Parent.SendStreamMessage(outputMessage2)
 
                                 outputMessage = settings["consoleChangedResponse"]
@@ -716,7 +774,10 @@ def Execute(data):
 
                         return
 
+                ## MAX COMMAND ##
+                # This 'if' checks for the following: chat message = maxCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["maxCommand"]) and (Parent.HasPermission(data.User, permissions["maxPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
 
@@ -729,17 +790,21 @@ def Execute(data):
 
                         return
 
+                ## LEAVE COMMAND ##
+                # This 'if' checks for the following: chat message = leaveCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["leaveCommand"]) and (Parent.HasPermission(data.User, permissions["leavePermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
+                        userLeaving = 0
 
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
                         elif (username in userList):
-                                temp2 = userList.index(username)
-                                userList.pop(temp2)
-                                userNumbers.pop(temp2)
+                                userLeaving = userList.index(username)
+                                userList.pop(userLeaving)
+                                userNumbers.pop(userLeaving)
                                 with open(os.path.join(responseListsPath, "userLeavesQueueResponses.json"), 'r') as filehandle:
                                         userLeavesQueueResponses = json.load(filehandle)
 
@@ -755,25 +820,30 @@ def Execute(data):
 
                         return
 
+                ## SPOT COMMAND ##
+                # This 'if' checks for the following: chat message = spotCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["spotCommand"]) and (Parent.HasPermission(data.User, permissions["spotPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
+                        spot = 0
+                        total = 0
 
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
                         elif (username in userList):
-                                total = str(len(userList))
+                                total = len(userList)
                                 if currentMode == "Queue":
-                                        spot = str(userList.index(username) + 1)
+                                        spot = userList.index(username) + 1
                                         outputMessage = settings["spotResponse"]
                                         outputMessage = outputMessage.replace("$user", username)
-                                        outputMessage = outputMessage.replace("$spot", spot)
-                                        outputMessage = outputMessage.replace("$total", total)
+                                        outputMessage = outputMessage.replace("$spot", str(spot))
+                                        outputMessage = outputMessage.replace("$total", str(total))
                                 else:
                                         outputMessage = settings["spotRandomResponse"]
                                         outputMessage = outputMessage.replace("$user", username)
-                                        outputMessage = outputMessage.replace("$total", total)
+                                        outputMessage = outputMessage.replace("$total", str(total))
                         else:
                                 outputMessage = settings["notEnteredSpotResponse"]
                                 outputMessage = outputMessage.replace("$user", username)
@@ -782,7 +852,11 @@ def Execute(data):
 
                         return
 
+                ## INFO COMMAND ##
+                # This 'if' checks for the following: chat message = infoCommand, user has permission to use that command
                 elif data.IsChatMessage() and ((data.GetParam(0).lower() == commands["infoCommand"]) or (data.GetParam(0).lower() == "!commands")) and (Parent.HasPermission(data.User, permissions["infoPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
+                        outputMessage = ""
 
                         outputMessage = "For info about Retro Roulette and its command list go here: https://pastebin.com/TxWA4CmS"
 
@@ -790,7 +864,10 @@ def Execute(data):
 
                         return
 
+                ## CURRENT COMMAND ##
+                # This 'if' checks for the following: chat message = currentCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["currentCommand"]) and (Parent.HasPermission(data.User, permissions["currentPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
 
@@ -806,10 +883,17 @@ def Execute(data):
 
                         return
 
+                ## WHO COMMAND ##
+                # This 'if' checks for the following: chat message = whoCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["whoCommand"]) and (Parent.HasPermission(data.User, permissions["whoPermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
                         number = 0
+                        otherUser = ""
+                        whoIndex = 0
+                        whoNum = 0
+                        
 
                         if not isRouletteStarted:
                                 outputMessage = settings["noRouletteResponse"]
@@ -821,16 +905,16 @@ def Execute(data):
                                         otherUser = data.GetParam(1)
 
                                         if (otherUser in userList):
-                                                whoTemp = userList.index(otherUser)
-                                                whoNum = userNumbers[whoTemp]
+                                                whoIndex = userList.index(otherUser)
+                                                whoNum = userNumbers[whoIndex]
                                                 outputMessage = settings["whoByNameResponse"]
                                                 outputMessage = outputMessage.replace("$user", otherUser)
                                                 outputMessage = outputMessage.replace("$number", str(whoNum))
                                                 Parent.SendStreamMessage(outputMessage)
                                                 return
                                         elif (otherUser in usersPicked):
-                                                whoTemp = usersPicked.index(otherUser)
-                                                whoNum = numbersPicked[whoTemp]
+                                                whoIndex = usersPicked.index(otherUser)
+                                                whoNum = numbersPicked[whoIndex]
                                                 outputMessage = settings["whoByAlreadyPlayedNameResponse"]
                                                 outputMessage = outputMessage.replace("$user", otherUser)
                                                 outputMessage = outputMessage.replace("$number", str(whoNum))
@@ -842,22 +926,22 @@ def Execute(data):
                                                 return
                                 if (number in userNumbers):
                                         whoNum = userNumbers.index(number)
-                                        whoTemp = userList[whoNum]
+                                        whoIndex = userList[whoNum]
                                         outputMessage = settings["whoByNumberResponse"]
-                                        outputMessage = outputMessage.replace("$user", whoTemp)
+                                        outputMessage = outputMessage.replace("$user", whoIndex)
                                         outputMessage = outputMessage.replace("$number", str(number))
                                 elif (number in numbersPicked):
                                         whoNum = numbersPicked.index(number)
-                                        whoTemp = usersPicked[whoNum]
+                                        whoIndex = usersPicked[whoNum]
                                         outputMessage = settings["whoByAlreadyPlayedNumberResponse"]
-                                        outputMessage = outputMessage.replace("$user", whoTemp)
+                                        outputMessage = outputMessage.replace("$user", whoIndex)
                                         outputMessage = outputMessage.replace("$number", str(number))
                                 else:
                                         outputMessage = settings["whoNoneResponse"]
                         else:
                                 if (username in userList):
-                                        whoTemp = userList.index(username)
-                                        whoNum = userNumbers[whoTemp]
+                                        whoIndex = userList.index(username)
+                                        whoNum = userNumbers[whoIndex]
                                         outputMessage = settings["whoSelfResponse"]
                                         outputMessage = outputMessage.replace("$user", username)
                                         outputMessage = outputMessage.replace("$number", str(whoNum))
@@ -869,7 +953,10 @@ def Execute(data):
 
                         return
 
+                ## UPDATE COMMAND ##
+                # This 'if' checks for the following: chat message = updateCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["updateCommand"]) and (Parent.HasPermission(data.User, permissions["updatePermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
 
                         if isRouletteStarted:
@@ -881,9 +968,13 @@ def Execute(data):
                                 Init()
                         return
 
+                #3 RESET CONSOLE COMMAND ##
+                # This 'if' checks for the following: chat message = resetConsoleCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["resetConsoleCommand"]) and (Parent.HasPermission(data.User, permissions["resetConsolePermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
+                        console = ""
 
                         if (data.GetParamCount() == 2):
                                 try:
@@ -936,9 +1027,13 @@ def Execute(data):
 
                         return
 
+                ## SHUFFLE COMMAND ##
+                # This 'if' checks for the following: chat message = shuffleCommand, user has permission to use that command
                 elif data.IsChatMessage() and (data.GetParam(0).lower() == commands["shuffleCommand"]) and (Parent.HasPermission(data.User, permissions["shufflePermission"], "") or data.UserName == "LiquidDeath911"):
+                        ## LOCAL VARIABLES ##
                         outputMessage = ""
                         username = data.UserName
+                        console = ""
 
                         if (data.GetParamCount() == 2):
                                 try:
