@@ -26,7 +26,7 @@
     "defaultConsole": {
         "type": "dropdown",
         "value": "SNES",
-	"items": ["GB","NES","SNES","N64"],
+	"items": ["GB","GEN","N64","NES","SNES"],
         "label": "Default Console",
         "tooltip": "Set default console for Retro Roulette",
         "group" : "General"
@@ -322,7 +322,28 @@
         "type": "textbox",
         "value" : "@$user, nothing was shuffled. Make sure to put the console name or All after $shuffleCommand",
         "label": "Shuffle Failed Response",
-        "tooltip": "Message that will be posted when the suffle command fails.\r\n$user = Username\r\n$console = console picked\r\n$shuffleCommand = shuffle command",
+        "tooltip": "Message that will be posted when the shuffle command fails.\r\n$user = Username\r\n$console = console picked\r\n$shuffleCommand = shuffle command",
+        "group": "Basic Responses"
+    },
+    "refundResponse": {
+        "type": "textbox",
+        "value" : "@$user, you have been refunded. Pick another number!",
+        "label": "Refund Response",
+        "tooltip": "Message that will be posted when a user is refunded due to a game not working or streamer doesn't have it.\r\n$user = Username",
+        "group": "Basic Responses"
+    },
+    "refundFailedResponse": {
+        "type": "textbox",
+        "value" : "@$user the refund failed, please check for a typo!",
+        "label": "Refund Failed Response",
+        "tooltip": "Message that will be posted when a refund is failed.\r\n$user = Username",
+        "group": "Basic Responses"
+    },
+    "refundWaitResponse": {
+        "type": "textbox",
+        "value" : "@$user, the refunded user has not picked another number! Use $noRefundComand if needed",
+        "label": "Refund Failed Response",
+        "tooltip": "Message that will be posted when the next command is used but the refunded user hasn't picked another game yet.\r\n$user = Username\r\n$noRefundCommand = noRefundCommand",
         "group": "Basic Responses"
     },
     "openBannedList": {
